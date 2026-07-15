@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Kaunter — Serinian</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --merah:#C8102E; --merah-dk:#9E0C24; --emas:#C99A2E; --emas-hi:#E3B84F;
+  --ink:#2B1A14; --ink-soft:#6E5A50; --bg:#F4EDE0; --hijau:#3F8A4C; --biru:#3568C4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+h1{font-family:'Fraunces',serif;font-weight:900}
+header{
+  background:linear-gradient(160deg,var(--merah),var(--merah-dk));color:#fff;
+  padding:20px 28px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10;box-shadow:0 6px 20px rgba(0,0,0,.15);
+}
+header h1{font-size:1.5rem}
+.status-dot{width:10px;height:10px;border-radius:50%;background:#4ADE80;display:inline-block;margin-right:8px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.tabs{display:flex;gap:10px;padding:18px 28px 0}
+.tab{
+  padding:10px 22px;border-radius:999px;background:#fff;color:var(--ink-soft);font-weight:800;font-size:.9rem;
+  cursor:pointer;border:2px solid transparent;
+}
+.tab.active{border-color:var(--merah);color:var(--merah)}
+.count-badge{background:var(--merah);color:#fff;border-radius:999px;padding:1px 8px;font-size:.75rem;margin-left:6px}
+
+.board{
+  padding:24px 28px 60px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;
+}
+.card{
+  background:#fff;border-radius:18px;padding:20px;box-shadow:0 4px 18px rgba(43,26,20,.08);
+  border-left:6px solid var(--merah);
+}
+.card.disiapkan{border-left-color:#E0A32A}
+.card.selesai{border-left-color:var(--hijau);opacity:.6}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.card-top .meja{font-family:'Fraunces',serif;font-weight:900;font-size:1.5rem}
+.card-top .masa{font-size:.78rem;color:var(--ink-soft)}
+.card ul{list-style:none;margin:12px 0}
+.card li{display:flex;justify-content:space-between;padding:6px 0;font-size:.92rem;border-bottom:1px dashed rgba(43,26,20,.1)}
+.card .jumlah{
+  display:flex;justify-content:space-between;font-family:'Fraunces',serif;font-weight:900;color:var(--merah);
+  font-size:1.15rem;margin-top:10px;
+}
+.card .actions{display:flex;gap:8px;margin-top:16px}
+.card .actions button{
+  flex:1;padding:11px;border-radius:10px;border:none;font-weight:800;font-size:.85rem;cursor:pointer;
+  transition:opacity .2s;
+}
+.card .actions button:hover{opacity:.85}
+.btn-baru{background:var(--merah);color:#fff}
+.btn-disiap{background:#E0A32A;color:#fff}
+.btn-selesai{background:var(--hijau);color:#fff}
+.empty{padding:60px 28px;text-align:center;color:var(--ink-soft)}
+.empty b{display:block;font-family:'Fraunces',serif;font-size:1.4rem;color:var(--ink);margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="status-dot"></span>Dashboard Kaunter — Serinian</h1>
+  <div style="font-size:.85rem;opacity:.85" id="jamNow"></div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-f="baru">Baru <span class="count-badge" id="cBaru">0</span></div>
+  <div class="tab" data-f="disiapkan">Disiapkan <span class="count-badge" id="cDisiap">0</span></div>
+  <div class="tab" data-f="selesai">Selesai <span class="count-badge" id="cSelesai">0</span></div>
+  <div class="tab" data-f="semua">Semua</div>
+</div>
+
+<div class="board" id="board"></div>
+
+<script>
+/* ============ KONFIG SUPABASE — GANTI DUA NILAI NI (sama macam order.html) ============ */
+const SUPABASE_URL = "GANTI_DENGAN_PROJECT_URL";
+const SUPABASE_ANON_KEY = "GANTI_DENGAN_ANON_KEY";
+/* ======================================================================================= */
+
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let orders = [];
+let filter = 'baru';
+
+function fmtMasa(ts){
+  const d = new Date(ts);
+  return d.toLocaleTimeString('ms-MY', {hour:'2-digit', minute:'2-digit'});
+}
+
+function render(){
+  const board = document.getElementById('board');
+  const list = filter === 'semua' ? orders : orders.filter(o => o.status === filter);
+
+  document.getElementById('cBaru').textContent = orders.filter(o=>o.status==='baru').length;
+  document.getElementById('cDisiap').textContent = orders.filter(o=>o.status==='disiapkan').length;
+  document.getElementById('cSelesai').textContent = orders.filter(o=>o.status==='selesai').length;
+
+  if(!list.length){
+    board.innerHTML = `<div class="empty" style="grid-column:1/-1"><b>Takde order</b>Order baru akan muncul kat sini secara live.</div>`;
+    return;
+  }
+
+  board.innerHTML = list.map(o => {
+    const itemsHtml = o.items.map(it => `<li><span>${it.qty}× ${it.nama}</span><span>RM${(it.qty*it.harga).toFixed(2)}</span></li>`).join('');
+    let actions = '';
+    if(o.status === 'baru'){
+      actions = `<button class="btn-disiap" data-id="${o.id}" data-s="disiapkan">Mula Siapkan</button>`;
+    } else if(o.status === 'disiapkan'){
+      actions = `<button class="btn-selesai" data-id="${o.id}" data-s="selesai">Tandakan Selesai</button>`;
+    } else {
+      actions = `<button class="btn-baru" data-id="${o.id}" data-s="baru">Buka Semula</button>`;
+    }
+    return `
+      <div class="card ${o.status}">
+        <div class="card-top">
+          <div class="meja">Meja ${o.meja}</div>
+          <div class="masa">${fmtMasa(o.created_at)}</div>
+        </div>
+        <ul>${itemsHtml}</ul>
+        <div class="jumlah"><span>Jumlah</span><span>RM${o.jumlah.toFixed(2)}</span></div>
+        <div class="actions">${actions}</div>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('board').addEventListener('click', async e => {
+  const btn = e.target.closest('button[data-id]');
+  if(!btn) return;
+  const { id, s } = btn.dataset;
+  btn.disabled = true;
+  const { error } = await supa.from('orders').update({status: s}).eq('id', id);
+  if(error){ console.error(error); btn.disabled = false; return; }
+  const o = orders.find(x => x.id === id);
+  if(o) o.status = s;
+  render();
+});
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    filter = tab.dataset.f;
+    render();
+  });
+});
+
+async function loadInitial(){
+  const { data, error } = await supa.from('orders')
+    .select('*')
+    .gte('created_at', new Date(Date.now() - 24*60*60*1000).toISOString())
+    .order('created_at', {ascending:false});
+  if(error){ console.error(error); return; }
+  orders = data;
+  render();
+}
+
+supa.channel('orders-live')
+  .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, payload => {
+    orders.unshift(payload.new);
+    render();
+    // bunyi notifikasi ringkas
+    try{
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = 880; g.gain.value = 0.15;
+      o.start(); o.stop(ctx.currentTime + 0.25);
+    }catch(e){}
+  })
+  .on('postgres_changes', {event:'UPDATE', schema:'public', table:'orders'}, payload => {
+    const idx = orders.findIndex(o => o.id === payload.new.id);
+    if(idx > -1) orders[idx] = payload.new;
+    render();
+  })
+  .subscribe();
+
+function tickJam(){
+  document.getElementById('jamNow').textContent = new Date().toLocaleTimeString('ms-MY');
+}
+setInterval(tickJam, 1000); tickJam();
+
+loadInitial();
+</script>
+</body>
+</html>

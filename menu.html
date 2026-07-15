@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu Penuh — Serinian</title>
+<meta name="description" content="Menu penuh Restoran Seri Nian: nasi beriyani, sarapan pagi, masakan panas, western, dan minuman.">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Karla:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --putih:#FFFCF7; --putih-2:#FBF4E8;
+  --merah:#C8102E; --merah-dk:#9E0C24;
+  --emas:#C99A2E; --emas-hi:#E3B84F;
+  --ink:#2B1A14; --ink-soft:#6E5A50;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+::selection{background:var(--merah);color:#fff}
+body{
+  font-family:'Karla',sans-serif;background:var(--putih);color:var(--ink);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:'Fraunces',serif;font-weight:900;line-height:1.05}
+a{color:inherit}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+
+nav{
+  position:sticky;top:0;z-index:50;background:rgba(255,252,247,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(43,26,20,.08);
+}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:74px;max-width:900px;margin:0 auto;padding:0 24px}
+.logo{display:inline-flex;align-items:center;gap:12px;text-decoration:none;font-family:'Fraunces',serif;font-weight:900;font-size:1.3rem}
+.logo img{width:40px;height:40px}
+.logo span{color:var(--merah)}
+.back{
+  text-decoration:none;font-size:.9rem;font-weight:800;color:var(--merah);
+  display:inline-flex;align-items:center;gap:8px;
+}
+
+.hero-menu{
+  text-align:center;padding:56px 24px 30px;
+  background:radial-gradient(ellipse 70% 60% at 50% 0%, rgba(200,16,46,.06), transparent 60%);
+}
+.hero-menu .eyebrow{
+  font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--merah);font-weight:800;
+}
+.hero-menu h1{font-size:clamp(2.1rem,6vw,3.2rem);margin-top:12px}
+.hero-menu h1 em{font-style:italic;font-weight:700;color:var(--merah)}
+.hero-menu p{color:var(--ink-soft);margin-top:12px}
+
+.jump-nav{
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:0 24px 40px;max-width:900px;margin:0 auto;
+}
+.jump-nav a{
+  text-decoration:none;font-size:.82rem;font-weight:800;padding:9px 18px;border-radius:999px;
+  border:2px solid rgba(43,26,20,.12);color:var(--ink-soft);transition:border-color .2s,color .2s;
+}
+.jump-nav a:hover{border-color:var(--merah);color:var(--merah)}
+
+.top-kat{
+  font-family:'Fraunces',serif;font-weight:900;font-size:2.1rem;margin:64px 0 4px;
+  color:var(--merah);display:flex;align-items:center;gap:16px;scroll-margin-top:90px;
+}
+.top-kat:first-of-type{margin-top:10px}
+.top-kat::before{content:"";width:34px;height:4px;background:var(--emas);border-radius:4px;flex:none}
+.top-kat .n{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);font-weight:800;margin-left:6px}
+h3.kat{
+  font-family:'Fraunces',serif;font-weight:800;font-size:1.2rem;margin:30px 0 6px 20px;
+  display:flex;align-items:center;gap:14px;color:var(--ink);
+}
+h3.kat::after{content:"";flex:1;height:1px;background:rgba(43,26,20,.12);border-radius:2px}
+.menu-items{margin-left:20px;display:grid;grid-template-columns:1fr 1fr;gap:4px 36px}
+@media(max-width:640px){.menu-items{grid-template-columns:1fr}}
+.mi{display:flex;align-items:center;gap:14px;padding:12px 8px;border-radius:12px;transition:background .2s}
+.mi:hover{background:var(--putih-2)}
+.mi .thumb{width:52px;height:52px;border-radius:50%;flex:none;object-fit:cover}
+.mi .thumb-x{
+  width:52px;height:52px;border-radius:50%;flex:none;background:var(--emas);
+  display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:900;color:var(--ink);
+}
+.mi .t{flex:1;min-width:0}
+.mi .t b{display:block;font-size:.98rem}
+.mi .t small{color:var(--ink-soft);font-size:.8rem;display:block;margin-top:2px}
+.mi .p{font-family:'Fraunces',serif;font-weight:900;font-size:1.05rem;color:var(--merah);white-space:nowrap;text-align:right}
+
+.cta-bottom{
+  margin:80px 0 40px;text-align:center;background:var(--merah);color:#fff;padding:50px 24px;border-radius:24px;
+}
+.cta-bottom h2{font-size:1.8rem;margin-bottom:10px}
+.cta-bottom h2 em{font-style:italic;color:var(--emas-hi)}
+.cta-bottom p{color:rgba(255,255,255,.85);margin-bottom:26px}
+.cta-bottom a{
+  display:inline-flex;background:#fff;color:var(--merah);text-decoration:none;font-weight:800;
+  padding:15px 32px;border-radius:999px;
+}
+
+footer{padding:40px 24px;text-align:center;color:var(--ink-soft);font-size:.85rem}
+
+.rv{opacity:0;transform:translateY(30px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.rv.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <a class="logo" href="index.html"><img src="logo-serinian.png" alt="Logo Seri Nian">SERI<span>NIAN</span></a>
+    <a class="back" href="index.html">← Balik ke Laman Utama</a>
+  </div>
+</nav>
+
+<div class="hero-menu">
+  <p class="eyebrow">Restoran Seri Nian</p>
+  <h1>Menu <em>Penuh</em></h1>
+  <p>Semua yang kami hidangkan — dari sarapan sampai malam.</p>
+</div>
+
+<div class="jump-nav" id="jumpNav"></div>
+
+<div class="wrap" id="menu-penuh"></div>
+
+<div class="wrap">
+  <div class="cta-bottom">
+    <h2>Nak order atau tempah <em>katering?</em></h2>
+    <p>WhatsApp kami terus, kami reply cepat.</p>
+    <a href="https://wa.me/60172139500?text=Salam%2C%20saya%20nak%20tanya%20tentang%20menu%20Serinian" target="_blank" rel="noopener">WhatsApp 017-213 9500</a>
+  </div>
+</div>
+
+<footer>© 2026 Serinian · Restoran Seri Nian, Shah Alam.</footer>
+
+<script>
+var MENU_DATA = [
+  {kat:"Nasi Beriyani", top:"Nasi Beriyani", nama:"Beriyani Ayam Merah",         harga:12, desc:"Peha ayam bersalut sambal merah",        img:"beriyani-ayam.png"},
+  {kat:"Nasi Beriyani", top:"Nasi Beriyani", nama:"Beriyani Daging Masak Hitam", harga:14, desc:"Daging lembut, kuah masak hitam pekat",  img:"beriyani-daging.png"},
+  {kat:"Nasi Beriyani", top:"Nasi Beriyani", nama:"Beriyani Kambing",            harga:17, desc:"Kambing empuk, tak hanyir",              img:"beriyani-kambing.png"},
+
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Titab Biasa", harga:5, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Titab King", harga:6.5, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Titab Cheese", harga:7, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Titab King Cheese", harga:8.5, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Bakar", harga:6, desc:"Choc Butter / Strawberry Butter / Peanut Butter / Blueberry Butter", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Bakar Kaya", harga:5, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Waffle Classic", harga:5, desc:"", img:""},
+    {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lempeng Tradisi", harga:5, desc:"2 keping", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lempeng Kelapa", harga:3.5, desc:"1 keping", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lempeng Pisang", harga:4, desc:"1 keping", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lempeng Keju", harga:4.5, desc:"1 keping", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Cekodok Pisang", harga:5, desc:"15 keping", img:""},,
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Kacang Phool", harga:10, desc:"", img:""},
+    {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Mantao Sambal", harga:6, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Mantao Cendawan", harga:9, desc:"", img:""},,
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Canai",                  harga:"RM —", desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Aneka Kuih Muih",             harga:"RM —", desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Nasi Lemak",                  harga:"RM —", desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lontong",                     harga:"RM —", desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Nasi Goreng",                 harga:"RM —", desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Mee Goreng",                  harga:"RM —", desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Mee Hoon Goreng",             harga:"RM —", desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Garlic & Mushroom Soup", harga:9, desc:"", img:""},
+
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Nian", harga:7, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Kampung", harga:7.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Cina", harga:7, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Thai", harga:9.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng USA", harga:9.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Ayam", harga:9.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Daging", harga:9.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Udang", harga:9, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Sotong", harga:9, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Ikan Masin", harga:8, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Belacan", harga:7.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Cendawan", harga:8, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Cili Padi", harga:7.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Ayam Kunyit", harga:8.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Daging Kunyit", harga:9.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Tom Yam", harga:8, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Phattaya", harga:8, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Phat Prik Ayam", harga:8.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Phat Prik Daging", harga:9.5, desc:"", img:""},
+  {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Chicken Chop", harga:16, desc:"Hot item", img:""},
+  {kat:"Goreng Panas", top:"Masakan Panas", nama:"Goreng Nian", harga:6.5, desc:"Pilih mee, bihun atau kuey tiow", img:""},
+  {kat:"Goreng Panas", top:"Masakan Panas", nama:"Kung Fu", harga:9, desc:"Pilih mee, bihun atau kuey tiow", img:""},
+  {kat:"Goreng Panas", top:"Masakan Panas", nama:"Tom Yam", harga:8.5, desc:"Pilih mee, bihun atau kuey tiow", img:""},
+  {kat:"Goreng Panas", top:"Masakan Panas", nama:"Ladna", harga:9, desc:"Pilih mee, bihun atau kuey tiow", img:""},
+  {kat:"Goreng Panas", top:"Masakan Panas", nama:"Sup", harga:7.5, desc:"Pilih mee, bihun atau kuey tiow", img:""},
+  {kat:"Goreng Panas", top:"Masakan Panas", nama:"Mee Maggie Kari", harga:7.5, desc:"", img:""},
+  {kat:"Goreng Panas", top:"Masakan Panas", nama:"Char Kuey Tiow", harga:8.5, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Phat Prik Ayam", harga:7, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Phat Prik Daging", harga:8, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Phat Prik Seafood", harga:9, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Daging Merah", harga:7.5, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Ayam Merah", harga:7, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Daging Kunyit", harga:7.5, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Ayam Kunyit", harga:7, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Ayam Kicap", harga:7, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Ayam Halia", harga:7.5, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Telur Bistik", harga:8, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Telur Bungkus", harga:8, desc:"", img:""},
+  {kat:"Lauk Pauk", top:"Masakan Panas", nama:"Sotong / Udang Tepung", harga:8, desc:"", img:""},
+  {kat:"Sup Segar", top:"Masakan Panas", nama:"Sup Ayam", harga:7.5, desc:"", img:""},
+  {kat:"Sup Segar", top:"Masakan Panas", nama:"Sup Daging", harga:8, desc:"", img:""},
+  {kat:"Sup Segar", top:"Masakan Panas", nama:"Sup Campur", harga:10, desc:"", img:""},
+  {kat:"Sup Segar", top:"Masakan Panas", nama:"Sup Tulang", harga:13, desc:"", img:""},
+  {kat:"Sup Segar", top:"Masakan Panas", nama:"Sup Ekor", harga:16, desc:"", img:""},
+  {kat:"Sup Segar", top:"Masakan Panas", nama:"Sup Sayur", harga:7, desc:"", img:""},
+  {kat:"Thom Yum", top:"Masakan Panas", nama:"Thom Yam Ayam", harga:8, desc:"", img:""},
+  {kat:"Thom Yum", top:"Masakan Panas", nama:"Thom Yam Daging", harga:9, desc:"", img:""},
+  {kat:"Thom Yum", top:"Masakan Panas", nama:"Thom Yam Campur", harga:10, desc:"", img:""},
+  {kat:"Thom Yum", top:"Masakan Panas", nama:"Thom Yam Seafood", harga:9, desc:"", img:""},
+  {kat:"Sayur Masak", top:"Masakan Panas", nama:"Sayur Khailan Ikan Masin", harga:6.5, desc:"", img:""},
+  {kat:"Sayur Masak", top:"Masakan Panas", nama:"Sayur Kangkung Goreng Biasa", harga:6.5, desc:"", img:""},
+  {kat:"Sayur Masak", top:"Masakan Panas", nama:"Sayur Kangkung Belacan", harga:6.5, desc:"", img:""},
+  {kat:"Sayur Masak", top:"Masakan Panas", nama:"Sayur Campur", harga:7, desc:"", img:""},
+  {kat:"Set Ikan", top:"Masakan Panas", nama:"Ikan Kembung", harga:15, desc:"Tiga rasa / Pedas / Masam Manis", img:""},
+  {kat:"Set Ikan", top:"Masakan Panas", nama:"Ikan Siakap", harga:39, desc:"Tiga rasa / Pedas / Steam", img:""},
+  {kat:"Set Hidang", top:"Masakan Panas", nama:"Set Dua", harga:27, desc:"2 nasi putih, ikan kembung masak, sayur, telur dadar — untuk 2 orang", img:""},
+  {kat:"Set Hidang", top:"Masakan Panas", nama:"Set Empat", harga:70, desc:"4 nasi putih, ikan siakap masak, 2 telur dadar, thom yum ayam, sotong tepung — untuk 4 orang", img:""},
+  {kat:"Set Hidang", top:"Masakan Panas", nama:"Set Enam", harga:99, desc:"6 nasi putih, ikan siakap & kembung masak, 2 sayur, 3 telur dadar, thom yum, sotong tepung, sup/sambal belacan — untuk 6 orang", img:""},
+  {kat:"Set Hidang", top:"Masakan Panas", nama:"Ayam Penyet", harga:11, desc:"Ayam bersama sambal penyet pedas", img:""},
+  {kat:"Western", top:"Western", nama:"Fish & Chip", harga:15, desc:"", img:""},
+  {kat:"Western", top:"Western", nama:"Fishcake Crispy", harga:7, desc:"", img:""},
+  {kat:"Western", top:"Western", nama:"Chicken Chop", harga:13, desc:"Ayam bersalut tepung, kentang & sayur", img:""},
+  {kat:"Western", top:"Western", nama:"Fries", harga:7, desc:"", img:""},
+  {kat:"Western", top:"Western", nama:"Fries Meatball", harga:10, desc:"Bebola daging, kentang & sos", img:""},
+  {kat:"Western", top:"Western", nama:"Fried Fries", harga:7, desc:"Kentang goreng & sos", img:""},
+  {kat:"Western", top:"Western", nama:"Sosej Cocktail", harga:7, desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Teh", harga:"RM2.50 (panas) / RM3.00 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Teh O", harga:"RM1.50 (panas) / RM2.00 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Kopi", harga:"RM2.50 (panas) / RM3.00 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Kopi O", harga:"RM1.50 (panas) / RM2.00 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Nescafe", harga:"RM3.50 (panas) / RM4.00 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Milo", harga:"RM3.50 (panas) / RM4.00 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Neslo", harga:"RM4.00 (panas) / RM4.50 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Horlick", harga:"RM3.50 (panas) / RM4.00 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Sirap", harga:"RM1.50 (panas) / RM2.00 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Limau", harga:"RM1.50 (panas) / RM2.00 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Barli", harga:"RM2.00 (panas) / RM2.50 (sejuk)", desc:"", img:""},
+  {kat:"Minuman", top:"Minuman", nama:"Sunquick", harga:"RM2.50 (panas) / RM3.00 (sejuk)", desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Longan", harga:5, desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Epal", harga:5, desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Orange", harga:5, desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Carrot", harga:5, desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Lemon", harga:2.5, desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Lemon Madu", harga:3.5, desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Limau Asam Boi", harga:2.5, desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Laici", harga:3.5, desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Teh O Laici", harga:4, desc:"", img:""},
+  {kat:"Air Buah", top:"Minuman", nama:"Sirap Laici", harga:4, desc:"", img:""},
+  {kat:"Minuman Special", top:"Minuman", nama:"Belgium Choco", harga:5, desc:"", img:""},
+  {kat:"Minuman Special", top:"Minuman", nama:"Belgium Mocha", harga:5, desc:"", img:""},
+  {kat:"Minuman Special", top:"Minuman", nama:"Green Tea", harga:5, desc:"", img:""},
+  {kat:"Minuman Special", top:"Minuman", nama:"Radix", harga:4, desc:"", img:""},
+  {kat:"Minuman Special", top:"Minuman", nama:"Sumiyaki", harga:5, desc:"", img:""},
+  {kat:"Minuman Special", top:"Minuman", nama:"Kopi Jantan", harga:4, desc:"", img:""},
+  {kat:"Minuman Special", top:"Minuman", nama:"Ali Cafe", harga:4, desc:"", img:""},
+  {kat:"Minuman Special", top:"Minuman", nama:"Extra Joss", harga:3, desc:"", img:""},
+  {kat:"Minuman Special", top:"Minuman", nama:"Laicikang", harga:6, desc:"", img:""}
+];
+
+(function(){
+  var wrap = document.getElementById('menu-penuh');
+  var jumpNav = document.getElementById('jumpNav');
+  if(!wrap || !MENU_DATA.length) return;
+
+  var topOrder = [], byTop = {};
+  MENU_DATA.forEach(function(m){
+    if(!byTop[m.top]){ byTop[m.top] = []; topOrder.push(m.top); }
+    byTop[m.top].push(m);
+  });
+
+  topOrder.forEach(function(top){
+    var items = byTop[top];
+    var slug = top.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+
+    var jl = document.createElement('a');
+    jl.href = '#' + slug;
+    jl.textContent = top;
+    jumpNav.appendChild(jl);
+
+    var h2 = document.createElement('div');
+    h2.className = 'top-kat rv';
+    h2.id = slug;
+    h2.innerHTML = top + ' <span class="n">' + items.length + ' pilihan</span>';
+    wrap.appendChild(h2);
+
+    var byKat = {}, katOrder = [];
+    items.forEach(function(m){
+      if(!byKat[m.kat]){ byKat[m.kat] = []; katOrder.push(m.kat); }
+      byKat[m.kat].push(m);
+    });
+    var singleSub = katOrder.length === 1 && katOrder[0] === top;
+
+    katOrder.forEach(function(kat){
+      if(!singleSub){
+        var h3 = document.createElement('h3');
+        h3.className = 'kat rv';
+        h3.textContent = kat;
+        wrap.appendChild(h3);
+      }
+      var grid = document.createElement('div');
+      grid.className = 'menu-items';
+      byKat[kat].forEach(function(m){
+        var el = document.createElement('div');
+        el.className = 'mi rv';
+        var thumb = m.img
+          ? '<img class="thumb" src="'+m.img+'" alt="'+m.nama+'" loading="lazy">'
+          : '<div class="thumb-x">'+m.nama.charAt(0)+'</div>';
+        var harga = (typeof m.harga === 'number') ? 'RM'+m.harga : m.harga;
+        el.innerHTML = thumb +
+          '<div class="t"><b>'+m.nama+'</b>'+(m.desc?'<small>'+m.desc+'</small>':'')+'</div>' +
+          '<div class="p">'+harga+'</div>';
+        grid.appendChild(el);
+      });
+      wrap.appendChild(grid);
+    });
+  });
+
+  if(window.IntersectionObserver){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    },{threshold:.08});
+    wrap.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
+  } else {
+    wrap.querySelectorAll('.rv').forEach(function(el){ el.classList.add('in'); });
+  }
+})();
+</script>
+</body>
+</html>
