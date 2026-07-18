@@ -81,13 +81,54 @@ header h1{font-size:1.5rem}
 .btn-selesai{background:var(--hijau);color:#fff}
 .empty{padding:60px 28px;text-align:center;color:var(--ink-soft)}
 .empty b{display:block;font-family:'Fraunces',serif;font-size:1.4rem;color:var(--ink);margin-bottom:8px}
+.btn-logout{background:none;border:none;color:#fff;opacity:.8;font-size:.78rem;font-weight:700;padding:6px;margin-right:14px;cursor:pointer}
+
+.login-gate{
+  position:fixed;inset:0;background:var(--merah-dk);z-index:999;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.login-box{
+  background:#fff;border-radius:18px;padding:32px 26px;width:100%;max-width:340px;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+.login-box h2{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:900;color:var(--merah);margin-bottom:4px}
+.login-box .sub{font-size:.78rem;color:var(--ink-soft);margin-bottom:20px}
+.login-box input{
+  width:100%;padding:12px 14px;font-size:15px;margin-bottom:10px;
+  border:2px solid rgba(43,26,20,.15);border-radius:10px;outline:none;font-family:'Karla',sans-serif;
+}
+.login-box input:focus{border-color:var(--merah)}
+.login-box button{
+  width:100%;min-height:48px;border:none;border-radius:999px;
+  background:var(--merah);color:#fff;font-size:15px;font-weight:800;
+  font-family:inherit;margin-top:6px;cursor:pointer;
+}
+.login-box button:active{background:var(--merah-dk)}
+.login-err{color:var(--merah);font-size:.82rem;font-weight:700;margin-top:8px;display:none}
+.login-err.show{display:block}
 </style>
 </head>
 <body>
 
+<div class="login-gate" id="loginGate">
+  <div class="login-box">
+    <h2>Log Masuk Dashboard</h2>
+    <div class="sub">Restoran Seri Nian</div>
+    <form id="loginForm">
+      <input type="text" id="loginUser" placeholder="Username" autocomplete="username" required>
+      <input type="password" id="loginPass" placeholder="Kata Laluan" autocomplete="current-password" required>
+      <button type="submit">MASUK</button>
+      <div class="login-err" id="loginErr">Username / kata laluan salah.</div>
+    </form>
+  </div>
+</div>
+
 <header>
   <h1><span class="status-dot"></span><span id="dashTitle">Dashboard Kaunter — Serinian</span></h1>
-  <div style="font-size:.85rem;opacity:.85" id="jamNow"></div>
+  <div style="display:flex;align-items:center">
+    <button class="btn-logout" id="btnLogout" onclick="logout()">Log Keluar</button>
+    <div style="font-size:.85rem;opacity:.85" id="jamNow"></div>
+  </div>
 </header>
 
 <div class="tabs">
@@ -107,6 +148,43 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* ============ LOGIN — sama akaun/kata laluan macam pos.html ============
+   Akaun vendor (lamanroti/neans) dikunci terus pada dashboard vendor dia
+   (session menang atas ?vendor= URL). Akaun master (serian) dapat skrin
+   cashier penuh secara default, tapi boleh guna ?vendor= untuk intip
+   dashboard vendor tertentu kalau perlu. */
+const LOGIN_ACCOUNTS = {
+  serian:    { password: "9999", vendor: null },
+  lamanroti: { password: "9999", vendor: "Laman Roti" },
+  neans:     { password: "9999", vendor: "Neans" }
+};
+const SESSION_KEY = "sn_pos_session"; // sama key dgn pos.html, satu login untuk dua-dua
+
+function getSession(){
+  try{ return JSON.parse(localStorage.getItem(SESSION_KEY)); }
+  catch(e){ return null; }
+}
+function logout(){
+  localStorage.removeItem(SESSION_KEY);
+  location.reload();
+}
+function showLoginGate(){ document.getElementById("loginGate").style.display = "flex"; }
+function hideLoginGate(){ document.getElementById("loginGate").style.display = "none"; }
+
+document.getElementById("loginForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const u = document.getElementById("loginUser").value.trim().toLowerCase();
+  const p = document.getElementById("loginPass").value;
+  const acc = LOGIN_ACCOUNTS[u];
+  if(!acc || acc.password !== p){
+    document.getElementById("loginErr").classList.add("show");
+    return;
+  }
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ user: u, vendor: acc.vendor }));
+  hideLoginGate();
+  startApp();
+});
+
 /* ============ MOD VENDOR — ?vendor=Neans / ?vendor=Laman%20Roti ============
    Bila URL ada ?vendor=..., page ni jadi skrin vendor tu sahaja: papar order
    dia je, dan dia yang tekan Mula Siapkan / Selesai (sebab vendor sendiri
@@ -115,10 +193,7 @@ const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
    dari semua vendor (rujuk no meja untuk kutip bayaran), tapi TAKDE butang
    ubah status — itu tanggungjawab vendor masing-masing, cashier baca sahaja. */
 const params = new URLSearchParams(location.search);
-const vendorView = params.get('vendor'); // null = cashier view (semua vendor)
-if(vendorView){
-  document.getElementById('dashTitle').textContent = `Dashboard ${vendorView}`;
-}
+let vendorView = params.get('vendor'); // null = cashier view (semua vendor)
 
 let orders = [];
 let filter = 'baru';
@@ -247,32 +322,51 @@ async function loadInitial(){
   render();
 }
 
-supa.channel('orders-live')
-  .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, payload => {
-    orders.unshift(payload.new);
-    render();
-    // bunyi notifikasi ringkas
-    try{
-      const ctx = new (window.AudioContext||window.webkitAudioContext)();
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.frequency.value = 880; g.gain.value = 0.15;
-      o.start(); o.stop(ctx.currentTime + 0.25);
-    }catch(e){}
-  })
-  .on('postgres_changes', {event:'UPDATE', schema:'public', table:'orders'}, payload => {
-    const idx = orders.findIndex(o => o.id === payload.new.id);
-    if(idx > -1) orders[idx] = payload.new;
-    render();
-  })
-  .subscribe();
-
 function tickJam(){
   document.getElementById('jamNow').textContent = new Date().toLocaleTimeString('ms-MY');
 }
-setInterval(tickJam, 1000); tickJam();
 
-loadInitial();
+/* ---------- INIT (lepas login sahaja) ---------- */
+let appStarted = false;
+function startApp(){
+  if(appStarted) return; // elak subscribe/loadInitial dua kali
+  appStarted = true;
+
+  const session = getSession();
+  if(session && session.vendor) vendorView = session.vendor; // akaun vendor terkunci, menang atas ?vendor=
+  if(vendorView) document.getElementById('dashTitle').textContent = `Dashboard ${vendorView}`;
+
+  supa.channel('orders-live')
+    .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, payload => {
+      orders.unshift(payload.new);
+      render();
+      // bunyi notifikasi ringkas
+      try{
+        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 880; g.gain.value = 0.15;
+        o.start(); o.stop(ctx.currentTime + 0.25);
+      }catch(e){}
+    })
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'orders'}, payload => {
+      const idx = orders.findIndex(o => o.id === payload.new.id);
+      if(idx > -1) orders[idx] = payload.new;
+      render();
+    })
+    .subscribe();
+
+  setInterval(tickJam, 1000); tickJam();
+  loadInitial();
+}
+
+const existingSession = getSession();
+if(existingSession){
+  hideLoginGate();
+  startApp();
+} else {
+  showLoginGate();
+}
 </script>
 </body>
 </html>
