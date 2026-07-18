@@ -71,8 +71,6 @@
   .login-box button{width:100%;min-height:48px;border:none;border-radius:10px;background:var(--hijau);color:#fff;font-size:15px;font-weight:800;font-family:inherit;margin-top:6px;cursor:pointer}
   .login-err{color:var(--merah);font-size:13px;font-weight:700;margin-top:8px;display:none}
   .login-err.show{display:block}
-  .denied{color:var(--merah);font-size:13px;font-weight:700;margin-top:8px;display:none}
-  .denied.show{display:block}
 </style>
 </head>
 <body>
@@ -80,13 +78,12 @@
 <div class="login-gate" id="loginGate">
   <div class="login-box">
     <h2>Log Masuk Urus Menu</h2>
-    <div class="sub">Restoran Seri Nian — akaun master sahaja</div>
+    <div class="sub">Restoran Seri Nian, Laman Roti &amp; Neans</div>
     <form id="loginForm">
       <input type="text" id="loginUser" placeholder="Username" autocomplete="username" required>
       <input type="password" id="loginPass" placeholder="Kata Laluan" autocomplete="current-password" required>
       <button type="submit">MASUK</button>
       <div class="login-err" id="loginErr">Username / kata laluan salah.</div>
-      <div class="denied" id="deniedMsg">Akaun vendor tak boleh urus menu. Guna akaun "serinian".</div>
     </form>
   </div>
 </div>
@@ -94,7 +91,7 @@
 <header>
   <div>
     <h1>Urus Menu</h1>
-    <div class="sub">Restoran Seri Nian</div>
+    <div class="sub" id="headerSub">Restoran Seri Nian</div>
   </div>
   <button class="btn-logout" onclick="logout()">Log Keluar</button>
 </header>
@@ -102,7 +99,7 @@
 <div class="wrap">
 
   <div class="add-box">
-    <h2>+ Tambah Item Baru</h2>
+    <h2>+ Tambah Item Baru <span id="addBoxVendorLabel" style="font-weight:700;color:#6d7d68"></span></h2>
     <div class="add-grid">
       <input type="text" id="newName" placeholder="Nama item">
       <input type="number" id="newPrice" placeholder="Harga" step="0.5" min="0">
@@ -134,15 +131,17 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ============ LOGIN — sama akaun dgn pos.html/dashboard.html.
-   Halaman ni HANYA untuk akaun master (vendor: null). Akaun vendor
-   (lamanroti/neans) boleh login tapi ditolak masuk — urus menu bukan
-   tanggungjawab vendor, itu hak Restoran Seri Nian sahaja. ============ */
+   Akaun vendor (lamanroti/neans) boleh urus menu jugak — tapi terkunci
+   nampak & edit item vendor dia sendiri sahaja (dia yang paling tahu
+   menu dia). Akaun master (serinian, vendor:null) nampak & urus semua
+   vendor. */
 const LOGIN_ACCOUNTS = {
   serinian:  { password: "9999", vendor: null },
   lamanroti: { password: "9999", vendor: "Laman Roti" },
   neans:     { password: "9999", vendor: "Neans" }
 };
 const SESSION_KEY = "sn_pos_session";
+let lockedVendor = null; // null = master, boleh nampak semua vendor
 
 function getSession(){
   try{ return JSON.parse(localStorage.getItem(SESSION_KEY)); }
@@ -154,7 +153,6 @@ function hideLoginGate(){ document.getElementById("loginGate").style.display = "
 
 document.getElementById("loginForm").addEventListener("submit", e => {
   e.preventDefault();
-  document.getElementById("deniedMsg").classList.remove("show");
   const u = document.getElementById("loginUser").value.trim().toLowerCase();
   const p = document.getElementById("loginPass").value;
   const acc = LOGIN_ACCOUNTS[u];
@@ -163,10 +161,6 @@ document.getElementById("loginForm").addEventListener("submit", e => {
     return;
   }
   document.getElementById("loginErr").classList.remove("show");
-  if(acc.vendor !== null){
-    document.getElementById("deniedMsg").classList.add("show");
-    return;
-  }
   localStorage.setItem(SESSION_KEY, JSON.stringify({ user: u, vendor: acc.vendor }));
   hideLoginGate();
   startApp();
@@ -177,7 +171,9 @@ let items = [];
 let filterVendor = "Semua";
 
 async function loadItems(){
-  const { data, error } = await supa.from("menu_items").select("*").order("vendor").order("category").order("name");
+  let query = supa.from("menu_items").select("*").order("vendor").order("category").order("name");
+  if(lockedVendor) query = query.eq("vendor", lockedVendor); // vendor: nampak menu dia sahaja
+  const { data, error } = await query;
   if(error){ console.error(error); return; }
   items = data;
   render();
@@ -188,11 +184,17 @@ function getVendorTabs(){
 }
 
 function render(){
-  document.getElementById("filterTabs").innerHTML = getVendorTabs().map(v =>
-    `<button class="filter-tab ${v===filterVendor?'active':''}" onclick="setFilter('${v.replace(/'/g,"\\'")}')">${v}</button>`
-  ).join("");
+  const tabsEl = document.getElementById("filterTabs");
+  if(lockedVendor){
+    tabsEl.style.display = "none"; // vendor cuma ada satu vendor, tak perlu tab
+  } else {
+    tabsEl.style.display = "flex";
+    tabsEl.innerHTML = getVendorTabs().map(v =>
+      `<button class="filter-tab ${v===filterVendor?'active':''}" onclick="setFilter('${v.replace(/'/g,"\\'")}')">${v}</button>`
+    ).join("");
+  }
 
-  const list = filterVendor === "Semua" ? items : items.filter(i => i.vendor === filterVendor);
+  const list = (lockedVendor || filterVendor === "Semua") ? items : items.filter(i => i.vendor === filterVendor);
 
   document.getElementById("itemsBody").innerHTML = list.map(i => `
     <tr class="${i.active ? '' : 'inactive'}" data-id="${i.id}">
@@ -217,7 +219,7 @@ async function addItem(){
   const name = document.getElementById("newName").value.trim();
   const price = parseFloat(document.getElementById("newPrice").value);
   const category = document.getElementById("newCategory").value.trim();
-  const vendor = document.getElementById("newVendor").value;
+  const vendor = lockedVendor || document.getElementById("newVendor").value;
   if(!name || isNaN(price) || !category){
     alert("Isi semua medan: nama, harga, kategori.");
     return;
@@ -252,11 +254,18 @@ async function toggleActive(id, newVal){
 
 /* ============ INIT ============ */
 function startApp(){
+  const session = getSession();
+  lockedVendor = session.vendor || null;
+  if(lockedVendor){
+    document.getElementById("newVendor").style.display = "none";
+    document.getElementById("addBoxVendorLabel").textContent = `(${lockedVendor})`;
+    document.getElementById("headerSub").textContent = lockedVendor;
+  }
   loadItems();
 }
 
 const existingSession = getSession();
-if(existingSession && existingSession.vendor === null){
+if(existingSession && existingSession.user){
   hideLoginGate();
   startApp();
 } else {
