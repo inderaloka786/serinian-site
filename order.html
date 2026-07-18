@@ -34,6 +34,10 @@ h1,h2,h3{font-family:'Fraunces',serif;font-weight:900}
   font-size:1.05rem;margin:22px 0 10px 16px;display:flex;align-items:center;gap:12px;color:var(--ink-soft);
 }
 .kat-title::after{content:"";flex:1;height:1px;background:rgba(43,26,20,.1);border-radius:2px}
+.vendor-label{
+  font-size:.72rem;font-weight:800;color:var(--merah);text-transform:uppercase;
+  letter-spacing:.06em;margin:14px 0 6px 16px;
+}
 .item{margin-left:16px}
 .item{
   background:#fff;border-radius:16px;padding:16px;display:flex;gap:14px;align-items:center;
@@ -79,29 +83,29 @@ const MENU_DATA = [
   {kat:"Nasi Beriyani", top:"Nasi Beriyani", nama:"Beriyani Daging Masak Hitam", harga:14, desc:"Kuah masak hitam pekat", img:"beriyani-daging.png"},
   {kat:"Nasi Beriyani", top:"Nasi Beriyani", nama:"Beriyani Kambing",            harga:17, desc:"Kambing empuk, tak hanyir", img:"beriyani-kambing.png"},
 
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Titab Biasa", harga:5, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Titab King", harga:6.5, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Titab Cheese", harga:7, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Titab King Cheese", harga:8.5, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Bakar", harga:6, desc:"Choc Butter / Strawberry Butter / Peanut Butter / Blueberry Butter", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Bakar Kaya", harga:5, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Waffle Classic", harga:5, desc:"", img:""},
-    {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lempeng Tradisi", harga:5, desc:"2 keping", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lempeng Kelapa", harga:3.5, desc:"1 keping", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lempeng Pisang", harga:4, desc:"1 keping", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lempeng Keju", harga:4.5, desc:"1 keping", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Cekodok Pisang", harga:5, desc:"15 keping", img:""},,
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Kacang Phool", harga:10, desc:"", img:""},
-    {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Mantao Sambal", harga:6, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Mantao Cendawan", harga:9, desc:"", img:""},,
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Canai", harga:0, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Aneka Kuih Muih", harga:0, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Nasi Lemak", harga:0, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Lontong", harga:0, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Nasi Goreng", harga:0, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Mee Goreng", harga:0, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Mee Hoon Goreng", harga:0, desc:"", img:""},
-  {kat:"Sarapan Pagi", top:"Sarapan Pagi", nama:"Roti Garlic & Mushroom Soup", harga:9, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Laman Roti", nama:"Roti Titab Biasa", harga:5, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Laman Roti", nama:"Roti Titab King", harga:6.5, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Laman Roti", nama:"Roti Titab Cheese", harga:7, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Laman Roti", nama:"Roti Titab King Cheese", harga:8.5, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Laman Roti", nama:"Roti Bakar", harga:6, desc:"Choc Butter / Strawberry Butter / Peanut Butter / Blueberry Butter", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Laman Roti", nama:"Roti Bakar Kaya", harga:5, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Laman Roti", nama:"Waffle Classic", harga:5, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Laman Roti", nama:"Roti Garlic & Mushroom Soup", harga:9, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Neans", nama:"Lempeng Tradisi", harga:5, desc:"2 keping", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Neans", nama:"Lempeng Kelapa", harga:3.5, desc:"1 keping", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Neans", nama:"Lempeng Pisang", harga:4, desc:"1 keping", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Neans", nama:"Lempeng Keju", harga:4.5, desc:"1 keping", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Neans", nama:"Cekodok Pisang", harga:5, desc:"15 keping", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Neans", nama:"Roti Kacang Phool", harga:10, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Neans", nama:"Roti Mantao Sambal", harga:6, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Neans", nama:"Roti Mantao Cendawan", harga:9, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Restoran Seri Nian", nama:"Roti Canai", harga:0, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Restoran Seri Nian", nama:"Aneka Kuih Muih", harga:0, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Restoran Seri Nian", nama:"Nasi Lemak", harga:0, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Restoran Seri Nian", nama:"Lontong", harga:0, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Restoran Seri Nian", nama:"Nasi Goreng", harga:0, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Restoran Seri Nian", nama:"Mee Goreng", harga:0, desc:"", img:""},
+  {kat:"Sarapan Pagi", top:"Sarapan Pagi", vendor:"Restoran Seri Nian", nama:"Mee Hoon Goreng", harga:0, desc:"", img:""},
 
   {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Nian", harga:7, desc:"", img:""},
   {kat:"Nasi Goreng", top:"Masakan Panas", nama:"Nasi Goreng Kampung", harga:7.5, desc:"", img:""},
@@ -232,18 +236,42 @@ function renderMenu(){
         h3.className = 'kat-title'; h3.textContent = kat;
         wrap.appendChild(h3);
       }
-      byKat[kat].forEach(m => {
-        const row = document.createElement('div');
-        row.className = 'item';
-        const thumb = m.img
-          ? `<img class="thumb" src="${m.img}" alt="${m.nama}">`
-          : `<div class="thumb-x">${m.nama.charAt(0)}</div>`;
-        const isNum = typeof m.harga === 'number';
-        const hargaTxt = isNum ? (m.harga > 0 ? `RM${m.harga.toFixed(2).replace('.00','')}` : 'Tanya harga') : m.harga;
-        row.innerHTML = `
-          ${thumb}
-          <div class="t"><b>${m.nama}</b>${m.desc ? `<small>${m.desc}</small>` : ''}<span class="harga">${hargaTxt}</span></div>`;
-        wrap.appendChild(row);
+
+      /* Sesetengah kategori (contoh Sarapan Pagi) ada item dari lebih
+         satu vendor (Restoran Seri Nian / Laman Roti / Neans). Kalau
+         item dalam kategori ni ada tag vendor, asingkan papar ikut
+         vendor dgn label kecil, supaya pelanggan tahu item tu dari
+         gerai/vendor mana. */
+      const katItems = byKat[kat];
+      const vendorsInKat = [...new Set(katItems.map(m => m.vendor).filter(Boolean))];
+      const showVendorLabel = vendorsInKat.length > 1;
+
+      const byVendor = {}, vendorOrder = [];
+      katItems.forEach(m => {
+        const v = m.vendor || '__none__';
+        if(!byVendor[v]){ byVendor[v] = []; vendorOrder.push(v); }
+        byVendor[v].push(m);
+      });
+
+      vendorOrder.forEach(v => {
+        if(showVendorLabel && v !== '__none__'){
+          const vLabel = document.createElement('div');
+          vLabel.className = 'vendor-label'; vLabel.textContent = v;
+          wrap.appendChild(vLabel);
+        }
+        byVendor[v].forEach(m => {
+          const row = document.createElement('div');
+          row.className = 'item';
+          const thumb = m.img
+            ? `<img class="thumb" src="${m.img}" alt="${m.nama}">`
+            : `<div class="thumb-x">${m.nama.charAt(0)}</div>`;
+          const isNum = typeof m.harga === 'number';
+          const hargaTxt = isNum ? (m.harga > 0 ? `RM${m.harga.toFixed(2).replace('.00','')}` : 'Tanya harga') : m.harga;
+          row.innerHTML = `
+            ${thumb}
+            <div class="t"><b>${m.nama}</b>${m.desc ? `<small>${m.desc}</small>` : ''}<span class="harga">${hargaTxt}</span></div>`;
+          wrap.appendChild(row);
+        });
       });
     });
   });
