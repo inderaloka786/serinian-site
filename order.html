@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Order — Serinian</title>
+<title>Menu — Serinian</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --merah:#C8102E; --merah-dk:#9E0C24; --emas:#C99A2E; --emas-hi:#E3B84F;
@@ -49,107 +48,30 @@ h1,h2,h3{font-family:'Fraunces',serif;font-weight:900}
 .item .t b{display:block;font-size:1rem}
 .item .t small{color:var(--ink-soft);font-size:.82rem}
 .item .harga{font-family:'Fraunces',serif;font-weight:900;color:var(--merah);font-size:1.05rem;margin-top:2px;display:block}
-.qty{display:flex;align-items:center;gap:10px;flex:none}
-.qty button{
-  width:32px;height:32px;border-radius:50%;border:2px solid var(--merah);background:#fff;color:var(--merah);
-  font-size:1.1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:transform .15s;
+.hint{
+  text-align:center;color:var(--ink-soft);font-size:.85rem;padding:6px 20px 0;
 }
-.qty button:active{transform:scale(.9)}
-.qty span{min-width:20px;text-align:center;font-weight:800}
-
-.cart-bar{
-  position:fixed;bottom:0;left:0;right:0;z-index:30;
-  background:linear-gradient(160deg,var(--merah),var(--merah-dk));color:#fff;
-  padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 -6px 26px rgba(0,0,0,.2);
-  transform:translateY(120%);transition:transform .4s var(--ease);
-}
-.cart-bar.show{transform:translateY(0)}
-.cart-bar .info{font-size:.9rem}
-.cart-bar .info b{font-family:'Fraunces',serif;font-size:1.25rem;display:block}
-.cart-bar button{
-  background:#fff;color:var(--merah);border:none;padding:14px 28px;border-radius:999px;
-  font-weight:800;font-size:.95rem;cursor:pointer;
-}
-
-.modal-bg{
-  position:fixed;inset:0;background:rgba(43,26,20,.6);z-index:50;display:none;
-  align-items:flex-end;justify-content:center;
-}
-.modal-bg.show{display:flex}
-.modal{
-  background:#fff;border-radius:22px 22px 0 0;padding:28px 22px 30px;width:100%;max-width:640px;
-  max-height:80vh;overflow-y:auto;
-}
-.modal h2{font-size:1.4rem;margin-bottom:16px}
-.modal .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed rgba(43,26,20,.14);font-size:.95rem}
-.modal .total{display:flex;justify-content:space-between;padding:16px 0 0;font-family:'Fraunces',serif;font-weight:900;font-size:1.3rem;color:var(--merah)}
-.modal .btn-hantar{
-  width:100%;margin-top:20px;background:var(--merah);color:#fff;border:none;padding:16px;border-radius:999px;
-  font-weight:800;font-size:1rem;cursor:pointer;
-}
-.modal .btn-batal{
-  width:100%;margin-top:10px;background:none;border:none;color:var(--ink-soft);padding:10px;font-size:.9rem;cursor:pointer;
-}
-
-.ok-screen{
-  position:fixed;inset:0;background:var(--putih);z-index:60;display:none;
-  flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;
-}
-.ok-screen.show{display:flex}
-.ok-screen .tick{
-  width:84px;height:84px;border-radius:50%;background:var(--merah);color:#fff;
-  display:flex;align-items:center;justify-content:center;font-size:2.4rem;margin-bottom:22px;
-}
-.ok-screen h2{font-size:1.7rem;margin-bottom:10px}
-.ok-screen p{color:var(--ink-soft);max-width:340px}
-.ok-screen .no{font-family:'Fraunces',serif;font-weight:900;font-size:2.2rem;color:var(--merah);margin-top:18px}
 </style>
 </head>
 <body>
 
 <div class="top">
   <div class="meja" id="mejaLabel">MEJA —</div>
-  <h1>Order Serinian</h1>
+  <h1>Menu Serinian</h1>
 </div>
+
+<div class="hint">Sila beritahu staff kami pesanan anda — staff akan masukkan order untuk anda.</div>
 
 <div class="wrap" id="menuWrap"></div>
 
-<div class="cart-bar" id="cartBar">
-  <div class="info"><span id="cartCount">0</span> item<b id="cartTotal">RM0</b></div>
-  <button id="btnLihat">Lihat Troli</button>
-</div>
-
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <h2>Semak Order Anda</h2>
-    <div id="modalItems"></div>
-    <div class="total"><span>Jumlah</span><span id="modalTotal">RM0</span></div>
-    <button class="btn-hantar" id="btnHantar">Hantar Order</button>
-    <button class="btn-batal" id="btnBatal">Kembali ke Menu</button>
-  </div>
-</div>
-
-<div class="ok-screen" id="okScreen">
-  <div class="tick">✓</div>
-  <h2>Order Diterima!</h2>
-  <p>Order anda sedang disiapkan. Sila bayar di kaunter bila makanan sampai.</p>
-  <div class="no" id="okMeja">Meja —</div>
-</div>
-
 <script>
-/* ============ KONFIG SUPABASE — GANTI DUA NILAI NI ============ */
-const SUPABASE_URL = "https://afndxjdgxwhgcczuoeah.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbmR4amRneHdoZ2NjenVvZWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzMDIxOTQsImV4cCI6MjA5OTg3ODE5NH0.zWj_4z4kDNvR0NnmP-RDGDIseynFEr_QBgBRT0JWWOE";
-/* ================================================================ */
-
-const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+/* Page ni papar menu SAHAJA — pelanggan tak boleh order terus dari sini.
+   Staff yang ambil order verbal dari pelanggan dan masukkan dalam POS
+   (pos.html) sendiri. Sebab tu takde cart/troli/hantar order kat sini,
+   dan takde sambungan Supabase pun diperlukan (senarai menu statik je). */
 const params = new URLSearchParams(location.search);
 const meja = params.get('meja') || '—';
 document.getElementById('mejaLabel').textContent = 'MEJA ' + meja;
-document.getElementById('okMeja').textContent = 'Meja ' + meja;
 
 /* ============ SENARAI MENU — sama macam index.html, edit sini je ============ */
 const MENU_DATA = [
@@ -281,8 +203,6 @@ const MENU_DATA = [
 ];
 /* =============================================================================== */
 
-const cart = {};
-
 function renderMenu(){
   const wrap = document.getElementById('menuWrap');
 
@@ -320,94 +240,14 @@ function renderMenu(){
           : `<div class="thumb-x">${m.nama.charAt(0)}</div>`;
         const isNum = typeof m.harga === 'number';
         const hargaTxt = isNum ? (m.harga > 0 ? `RM${m.harga.toFixed(2).replace('.00','')}` : 'Tanya harga') : m.harga;
-        const canOrder = isNum && m.harga > 0;
         row.innerHTML = `
           ${thumb}
-          <div class="t"><b>${m.nama}</b>${m.desc ? `<small>${m.desc}</small>` : ''}<span class="harga">${hargaTxt}</span></div>
-          ${canOrder ? `
-          <div class="qty">
-            <button data-a="minus" data-n="${m.nama}">–</button>
-            <span id="q_${cssSafe(m.nama)}">0</span>
-            <button data-a="plus" data-n="${m.nama}">+</button>
-          </div>` : `<div class="qty" style="color:var(--ink-soft);font-size:.78rem;max-width:80px;text-align:right">Tanya staff</div>`}`;
+          <div class="t"><b>${m.nama}</b>${m.desc ? `<small>${m.desc}</small>` : ''}<span class="harga">${hargaTxt}</span></div>`;
         wrap.appendChild(row);
       });
     });
   });
 }
-function cssSafe(s){ return s.replace(/[^a-z0-9]/gi,'_'); }
-
-function updateQty(nama, delta){
-  const m = MENU_DATA.find(x => x.nama === nama);
-  if(!cart[nama]) cart[nama] = {item:m, qty:0};
-  cart[nama].qty = Math.max(0, cart[nama].qty + delta);
-  document.getElementById('q_' + cssSafe(nama)).textContent = cart[nama].qty;
-  renderCartBar();
-}
-
-function cartEntries(){ return Object.values(cart).filter(c => c.qty > 0); }
-
-function renderCartBar(){
-  const entries = cartEntries();
-  const count = entries.reduce((s,c)=>s+c.qty,0);
-  const total = entries.reduce((s,c)=>s+c.qty*c.item.harga,0);
-  document.getElementById('cartCount').textContent = count;
-  document.getElementById('cartTotal').textContent = 'RM' + total.toFixed(2);
-  document.getElementById('cartBar').classList.toggle('show', count > 0);
-}
-
-document.getElementById('menuWrap').addEventListener('click', e => {
-  const btn = e.target.closest('button[data-a]');
-  if(!btn) return;
-  updateQty(btn.dataset.n, btn.dataset.a === 'plus' ? 1 : -1);
-});
-
-document.getElementById('btnLihat').addEventListener('click', () => {
-  const entries = cartEntries();
-  const wrap = document.getElementById('modalItems');
-  wrap.innerHTML = entries.map(c => `
-    <div class="row"><span>${c.qty}× ${c.item.nama}</span><span>RM${(c.qty*c.item.harga).toFixed(2)}</span></div>
-  `).join('');
-  const total = entries.reduce((s,c)=>s+c.qty*c.item.harga,0);
-  document.getElementById('modalTotal').textContent = 'RM' + total.toFixed(2);
-  document.getElementById('modalBg').classList.add('show');
-});
-document.getElementById('btnBatal').addEventListener('click', () => {
-  document.getElementById('modalBg').classList.remove('show');
-});
-
-document.getElementById('btnHantar').addEventListener('click', async () => {
-  const entries = cartEntries();
-  if(!entries.length) return;
-  const total = entries.reduce((s,c)=>s+c.qty*c.item.harga,0);
-  const itemsPayload = entries.map(c => ({nama:c.item.nama, qty:c.qty, harga:c.item.harga}));
-
-  const btn = document.getElementById('btnHantar');
-  btn.disabled = true; btn.textContent = 'Menghantar...';
-
-  const { error } = await supa.from('orders').insert({
-    meja: parseInt(meja) || 0,
-    items: itemsPayload,
-    jumlah: total,
-    status: 'baru'
-  });
-
-  btn.disabled = false; btn.textContent = 'Hantar Order';
-
-  if(error){
-    alert('Maaf, ada masalah menghantar order. Cuba lagi atau panggil staff.');
-    console.error(error);
-    return;
-  }
-
-  document.getElementById('modalBg').classList.remove('show');
-  document.getElementById('okScreen').classList.add('show');
-  for(const k in cart) cart[k].qty = 0;
-  document.querySelectorAll('[id^="q_"]').forEach(el => el.textContent = '0');
-  renderCartBar();
-  setTimeout(() => document.getElementById('okScreen').classList.remove('show'), 5000);
-});
-
 renderMenu();
 </script>
 </body>
