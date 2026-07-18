@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>POS Kaunter · Laman Roti Seri Nian</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --hijau:#4a8c4a;
+    --hijau-tua:#356835;
+    --hijau-muda:#e8f2e8;
+    --merah:#c0392b;
+    --kertas:#fafaf7;
+    --ink:#22301f;
+    --garis:#d8e2d4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+    background:var(--kertas);color:var(--ink);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+
+  /* ===== HEADER ===== */
+  header{
+    background:var(--hijau);color:#fff;
+    padding:10px 14px;display:flex;align-items:center;gap:10px;
+    flex-shrink:0;
+  }
+  header h1{font-size:16px;font-weight:800;letter-spacing:.3px}
+  header .sub{font-size:11px;opacity:.85}
+  .status-dot{width:10px;height:10px;border-radius:50%;background:#7CFC00;margin-left:auto;flex-shrink:0}
+  .status-dot.offline{background:#ffb3a7}
+
+  /* ===== LAYOUT ===== */
+  .layout{flex:1;display:flex;overflow:hidden}
+
+  /* ===== MENU SIDE ===== */
+  .menu-side{flex:1.4;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--garis)}
+  .search-bar{padding:8px;background:#fff;border-bottom:1px solid var(--garis);flex-shrink:0}
+  .search-bar input{
+    width:100%;padding:12px 14px;font-size:15px;
+    border:2px solid var(--garis);border-radius:10px;outline:none;
+  }
+  .search-bar input:focus{border-color:var(--hijau)}
+  .cat-tabs{
+    display:flex;gap:6px;overflow-x:auto;padding:8px;background:#fff;
+    border-bottom:1px solid var(--garis);flex-shrink:0;
+    scrollbar-width:none;
+  }
+  .cat-tabs::-webkit-scrollbar{display:none}
+  .cat-tab{
+    padding:10px 16px;border-radius:999px;font-size:13px;font-weight:700;
+    background:var(--hijau-muda);color:var(--hijau-tua);
+    border:none;white-space:nowrap;flex-shrink:0;
+  }
+  .cat-tab.active{background:var(--hijau);color:#fff}
+  .menu-grid{
+    flex:1;overflow-y:auto;padding:8px;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:8px;align-content:start;
+  }
+  .item-btn{
+    min-height:72px;padding:10px;border-radius:12px;
+    background:#fff;border:1.5px solid var(--garis);
+    display:flex;flex-direction:column;justify-content:space-between;gap:6px;
+    text-align:left;font-family:inherit;
+  }
+  .item-btn:active{background:var(--hijau-muda);border-color:var(--hijau);transform:scale(.97)}
+  .item-btn .nm{font-size:13px;font-weight:700;line-height:1.25}
+  .item-btn .pr{font-size:13px;font-weight:800;color:var(--hijau-tua)}
+
+  /* ===== CART SIDE ===== */
+  .cart-side{
+    flex:1;display:flex;flex-direction:column;overflow:hidden;
+    background:#fff;min-width:290px;max-width:420px;
+  }
+  .cart-head{
+    padding:10px 14px;background:var(--hijau-muda);
+    font-size:13px;font-weight:800;color:var(--hijau-tua);
+    display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
+  }
+  .cart-head button{
+    background:none;border:none;color:var(--merah);
+    font-size:12px;font-weight:700;padding:6px;
+  }
+  .cart-list{flex:1;overflow-y:auto}
+  .cart-empty{padding:40px 20px;text-align:center;color:#9aa895;font-size:14px}
+  .cart-row{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 12px;border-bottom:1px solid var(--garis);
+  }
+  .cart-row .info{flex:1;min-width:0}
+  .cart-row .info .nm{font-size:13px;font-weight:700;line-height:1.2}
+  .cart-row .info .pr{font-size:12px;color:#6d7d68}
+  .qty-ctrl{display:flex;align-items:center;gap:2px;flex-shrink:0}
+  .qty-ctrl button{
+    width:40px;height:40px;border-radius:10px;border:none;
+    font-size:20px;font-weight:800;
+    background:var(--hijau-muda);color:var(--hijau-tua);
+  }
+  .qty-ctrl button:active{background:var(--hijau);color:#fff}
+  .qty-ctrl .q{width:32px;text-align:center;font-size:15px;font-weight:800}
+  .row-total{width:70px;text-align:right;font-size:13px;font-weight:800;flex-shrink:0}
+
+  /* ===== FOOTER / SUBMIT ===== */
+  .cart-foot{padding:10px 12px;border-top:2px solid var(--garis);flex-shrink:0;background:#fff}
+  .meja-input{
+    width:100%;padding:12px;font-size:14px;margin-bottom:8px;
+    border:2px solid var(--garis);border-radius:10px;outline:none;
+  }
+  .meja-input:focus{border-color:var(--hijau)}
+  .total-line{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:8px;
+  }
+  .total-line .lbl{font-size:13px;font-weight:700;color:#6d7d68}
+  .total-line .amt{font-size:26px;font-weight:800;color:var(--ink)}
+  .btn-hantar{
+    width:100%;min-height:60px;border:none;border-radius:14px;
+    background:var(--hijau);color:#fff;
+    font-size:18px;font-weight:800;letter-spacing:.5px;
+    font-family:inherit;
+  }
+  .btn-hantar:active{background:var(--hijau-tua)}
+  .btn-hantar:disabled{background:#c3d2be;color:#f2f6f0}
+
+  /* ===== TOAST ===== */
+  .toast{
+    position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:14px 22px;border-radius:12px;
+    font-size:14px;font-weight:700;opacity:0;pointer-events:none;
+    transition:all .25s ease;z-index:99;max-width:90vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{background:var(--merah)}
+
+  /* ===== RETRY BAR ===== */
+  .retry-bar{
+    display:none;padding:10px 12px;background:#fdecea;color:var(--merah);
+    font-size:13px;font-weight:700;align-items:center;gap:10px;flex-shrink:0;
+  }
+  .retry-bar.show{display:flex}
+  .retry-bar button{
+    margin-left:auto;padding:10px 16px;border:none;border-radius:10px;
+    background:var(--merah);color:#fff;font-weight:800;font-size:13px;
+  }
+
+  /* ===== MOBILE: stacked with cart drawer ===== */
+  @media (max-width:720px){
+    .layout{flex-direction:column}
+    .menu-side{flex:1;border-right:none}
+    .cart-side{
+      position:fixed;left:0;right:0;bottom:0;top:auto;
+      max-width:none;min-width:0;
+      max-height:75vh;height:auto;
+      border-radius:18px 18px 0 0;
+      box-shadow:0 -8px 30px rgba(0,0,0,.18);
+      transform:translateY(calc(100% - 64px));
+      transition:transform .25s ease;
+      z-index:50;
+    }
+    .cart-side.open{transform:translateY(0)}
+    .cart-head{
+      border-radius:18px 18px 0 0;padding:16px 14px;
+      cursor:pointer;
+    }
+    .cart-list{max-height:35vh}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>POS Kaunter</h1>
+    <div class="sub">Laman Roti Restoran Seri Nian</div>
+  </div>
+  <div class="status-dot" id="netDot" title="Sambungan"></div>
+</header>
+
+<div class="retry-bar" id="retryBar">
+  <span>Order tak masuk. Internet putus?</span>
+  <button onclick="hantarOrder()">CUBA LAGI</button>
+</div>
+
+<div class="layout">
+
+  <!-- MENU -->
+  <div class="menu-side">
+    <div class="search-bar">
+      <input type="search" id="searchBox" placeholder="Cari menu..." oninput="renderMenu()">
+    </div>
+    <div class="cat-tabs" id="catTabs"></div>
+    <div class="menu-grid" id="menuGrid"></div>
+  </div>
+
+  <!-- CART -->
+  <div class="cart-side" id="cartSide">
+    <div class="cart-head" id="cartHead" onclick="toggleCart()">
+      <span id="cartTitle">TROLI (0)</span>
+      <button onclick="event.stopPropagation();kosongkanCart()">Kosongkan</button>
+    </div>
+    <div class="cart-list" id="cartList">
+      <div class="cart-empty">Tekan item menu untuk tambah order</div>
+    </div>
+    <div class="cart-foot">
+      <input type="text" class="meja-input" id="mejaInput" placeholder="No. meja / nama (boleh kosong)">
+      <div class="total-line">
+        <span class="lbl">JUMLAH</span>
+        <span class="amt" id="totalAmt">RM0.00</span>
+      </div>
+      <button class="btn-hantar" id="btnHantar" onclick="hantarOrder()" disabled>HANTAR ORDER KE DAPUR</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   ⚙️ CONFIG
+
+   SUPABASE_URL + SUPABASE_ANON_KEY sama macam order.html /
+   dashboard.html — tapi kedua-dua fail tu (lokal & live) masih
+   guna placeholder "GANTI_DENGAN_...". Key sebenar belum wujud
+   dalam repo ni. Tampal kat sini bila Aliff bagi value sebenar
+   dari Supabase project settings, pastu samakan juga dalam
+   order.html + dashboard.html.
+
+   MENU_DATA: 128 item diterbitkan drpd MENU_DATA sebenar dalam
+   order.html (123 entri sumber, serinian-v3-merah.html rupanya
+   takde array menu — cuma landing page). 7 item "tanya harga"
+   (Roti Canai, Nasi Lemak, Lontong, Nasi Goreng, Mee Goreng,
+   Mee Hoon Goreng, Aneka Kuih Muih) digugurkan sebab takde
+   harga tetap untuk troli POS. Minuman dgn 2 harga (panas/
+   sejuk) dipecah jadi 2 entri berasingan.
+   ============================================================ */
+
+const SUPABASE_URL      = "https://afndxjdgxwhgcczuoeah.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbmR4amRneHdoZ2NjenVvZWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzMDIxOTQsImV4cCI6MjA5OTg3ODE5NH0.zWj_4z4kDNvR0NnmP-RDGDIseynFEr_QBgBRT0JWWOE";
+
+const MENU_DATA = [
+  {name:"Beriyani Ayam Merah", price:12, category:"Nasi Beriyani"},
+  {name:"Beriyani Daging Masak Hitam", price:14, category:"Nasi Beriyani"},
+  {name:"Beriyani Kambing", price:17, category:"Nasi Beriyani"},
+  {name:"Roti Titab Biasa", price:5, category:"Sarapan Pagi"},
+  {name:"Roti Titab King", price:6.5, category:"Sarapan Pagi"},
+  {name:"Roti Titab Cheese", price:7, category:"Sarapan Pagi"},
+  {name:"Roti Titab King Cheese", price:8.5, category:"Sarapan Pagi"},
+  {name:"Roti Bakar", price:6, category:"Sarapan Pagi"},
+  {name:"Roti Bakar Kaya", price:5, category:"Sarapan Pagi"},
+  {name:"Waffle Classic", price:5, category:"Sarapan Pagi"},
+  {name:"Lempeng Tradisi", price:5, category:"Sarapan Pagi"},
+  {name:"Lempeng Kelapa", price:3.5, category:"Sarapan Pagi"},
+  {name:"Lempeng Pisang", price:4, category:"Sarapan Pagi"},
+  {name:"Lempeng Keju", price:4.5, category:"Sarapan Pagi"},
+  {name:"Cekodok Pisang", price:5, category:"Sarapan Pagi"},
+  {name:"Roti Kacang Phool", price:10, category:"Sarapan Pagi"},
+  {name:"Roti Mantao Sambal", price:6, category:"Sarapan Pagi"},
+  {name:"Roti Mantao Cendawan", price:9, category:"Sarapan Pagi"},
+  {name:"Roti Garlic & Mushroom Soup", price:9, category:"Sarapan Pagi"},
+  {name:"Nasi Goreng Nian", price:7, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Kampung", price:7.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Cina", price:7, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Thai", price:9.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng USA", price:9.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Ayam", price:9.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Daging", price:9.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Udang", price:9, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Sotong", price:9, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Ikan Masin", price:8, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Belacan", price:7.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Cendawan", price:8, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Cili Padi", price:7.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Ayam Kunyit", price:8.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Daging Kunyit", price:9.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Tom Yam", price:8, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Phattaya", price:8, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Phat Prik Ayam", price:8.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Phat Prik Daging", price:9.5, category:"Nasi Goreng"},
+  {name:"Nasi Goreng Chicken Chop", price:16, category:"Nasi Goreng"},
+  {name:"Goreng Nian", price:6.5, category:"Goreng Panas"},
+  {name:"Kung Fu", price:9, category:"Goreng Panas"},
+  {name:"Tom Yam", price:8.5, category:"Goreng Panas"},
+  {name:"Ladna", price:9, category:"Goreng Panas"},
+  {name:"Sup", price:7.5, category:"Goreng Panas"},
+  {name:"Mee Maggie Kari", price:7.5, category:"Goreng Panas"},
+  {name:"Char Kuey Tiow", price:8.5, category:"Goreng Panas"},
+  {name:"Phat Prik Ayam", price:7, category:"Lauk Pauk"},
+  {name:"Phat Prik Daging", price:8, category:"Lauk Pauk"},
+  {name:"Phat Prik Seafood", price:9, category:"Lauk Pauk"},
+  {name:"Daging Merah", price:7.5, category:"Lauk Pauk"},
+  {name:"Ayam Merah", price:7, category:"Lauk Pauk"},
+  {name:"Daging Kunyit", price:7.5, category:"Lauk Pauk"},
+  {name:"Ayam Kunyit", price:7, category:"Lauk Pauk"},
+  {name:"Ayam Kicap", price:7, category:"Lauk Pauk"},
+  {name:"Ayam Halia", price:7.5, category:"Lauk Pauk"},
+  {name:"Telur Bistik", price:8, category:"Lauk Pauk"},
+  {name:"Telur Bungkus", price:8, category:"Lauk Pauk"},
+  {name:"Sotong / Udang Tepung", price:8, category:"Lauk Pauk"},
+  {name:"Sup Ayam", price:7.5, category:"Sup Segar"},
+  {name:"Sup Daging", price:8, category:"Sup Segar"},
+  {name:"Sup Campur", price:10, category:"Sup Segar"},
+  {name:"Sup Tulang", price:13, category:"Sup Segar"},
+  {name:"Sup Ekor", price:16, category:"Sup Segar"},
+  {name:"Sup Sayur", price:7, category:"Sup Segar"},
+  {name:"Thom Yam Ayam", price:8, category:"Thom Yum"},
+  {name:"Thom Yam Daging", price:9, category:"Thom Yum"},
+  {name:"Thom Yam Campur", price:10, category:"Thom Yum"},
+  {name:"Thom Yam Seafood", price:9, category:"Thom Yum"},
+  {name:"Sayur Khailan Ikan Masin", price:6.5, category:"Sayur Masak"},
+  {name:"Sayur Kangkung Goreng Biasa", price:6.5, category:"Sayur Masak"},
+  {name:"Sayur Kangkung Belacan", price:6.5, category:"Sayur Masak"},
+  {name:"Sayur Campur", price:7, category:"Sayur Masak"},
+  {name:"Ikan Kembung", price:15, category:"Set Ikan"},
+  {name:"Ikan Siakap", price:39, category:"Set Ikan"},
+  {name:"Set Dua", price:27, category:"Set Hidang"},
+  {name:"Set Empat", price:70, category:"Set Hidang"},
+  {name:"Set Enam", price:99, category:"Set Hidang"},
+  {name:"Ayam Penyet", price:11, category:"Set Hidang"},
+  {name:"Fish & Chip", price:15, category:"Western"},
+  {name:"Fishcake Crispy", price:7, category:"Western"},
+  {name:"Chicken Chop", price:13, category:"Western"},
+  {name:"Fries", price:7, category:"Western"},
+  {name:"Fries Meatball", price:10, category:"Western"},
+  {name:"Fried Fries", price:7, category:"Western"},
+  {name:"Sosej Cocktail", price:7, category:"Western"},
+  {name:"Teh (panas)", price:2.5, category:"Minuman"},
+  {name:"Teh (sejuk)", price:3, category:"Minuman"},
+  {name:"Teh O (panas)", price:1.5, category:"Minuman"},
+  {name:"Teh O (sejuk)", price:2, category:"Minuman"},
+  {name:"Kopi (panas)", price:2.5, category:"Minuman"},
+  {name:"Kopi (sejuk)", price:3, category:"Minuman"},
+  {name:"Kopi O (panas)", price:1.5, category:"Minuman"},
+  {name:"Kopi O (sejuk)", price:2, category:"Minuman"},
+  {name:"Nescafe (panas)", price:3.5, category:"Minuman"},
+  {name:"Nescafe (sejuk)", price:4, category:"Minuman"},
+  {name:"Milo (panas)", price:3.5, category:"Minuman"},
+  {name:"Milo (sejuk)", price:4, category:"Minuman"},
+  {name:"Neslo (panas)", price:4, category:"Minuman"},
+  {name:"Neslo (sejuk)", price:4.5, category:"Minuman"},
+  {name:"Horlick (panas)", price:3.5, category:"Minuman"},
+  {name:"Horlick (sejuk)", price:4, category:"Minuman"},
+  {name:"Sirap (panas)", price:1.5, category:"Minuman"},
+  {name:"Sirap (sejuk)", price:2, category:"Minuman"},
+  {name:"Limau (panas)", price:1.5, category:"Minuman"},
+  {name:"Limau (sejuk)", price:2, category:"Minuman"},
+  {name:"Barli (panas)", price:2, category:"Minuman"},
+  {name:"Barli (sejuk)", price:2.5, category:"Minuman"},
+  {name:"Sunquick (panas)", price:2.5, category:"Minuman"},
+  {name:"Sunquick (sejuk)", price:3, category:"Minuman"},
+  {name:"Longan", price:5, category:"Air Buah"},
+  {name:"Epal", price:5, category:"Air Buah"},
+  {name:"Orange", price:5, category:"Air Buah"},
+  {name:"Carrot", price:5, category:"Air Buah"},
+  {name:"Lemon", price:2.5, category:"Air Buah"},
+  {name:"Lemon Madu", price:3.5, category:"Air Buah"},
+  {name:"Limau Asam Boi", price:2.5, category:"Air Buah"},
+  {name:"Laici", price:3.5, category:"Air Buah"},
+  {name:"Teh O Laici", price:4, category:"Air Buah"},
+  {name:"Sirap Laici", price:4, category:"Air Buah"},
+  {name:"Belgium Choco", price:5, category:"Minuman Special"},
+  {name:"Belgium Mocha", price:5, category:"Minuman Special"},
+  {name:"Green Tea", price:5, category:"Minuman Special"},
+  {name:"Radix", price:4, category:"Minuman Special"},
+  {name:"Sumiyaki", price:5, category:"Minuman Special"},
+  {name:"Kopi Jantan", price:4, category:"Minuman Special"},
+  {name:"Ali Cafe", price:4, category:"Minuman Special"},
+  {name:"Extra Joss", price:3, category:"Minuman Special"},
+  {name:"Laicikang", price:6, category:"Minuman Special"}
+];
+
+/* ============================================================ */
+
+/* Lazy init — supaya UI tetap render walaupun key belum paste / CDN gagal */
+let sb = null;
+function getSb(){
+  if(sb) return sb;
+  if(typeof supabase === "undefined") return null;               // CDN tak load
+  if(SUPABASE_URL.indexOf("http") !== 0) return null;            // key belum paste
+  try{ sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  catch(e){ console.error(e); return null; }
+  return sb;
+}
+
+let cart = [];          // {name, price, qty}
+let activeCat = "Semua";
+let sending = false;
+
+/* ---------- MENU RENDER ---------- */
+function getCats(){
+  const cats = [...new Set(MENU_DATA.map(i=>i.category))];
+  return ["Semua", ...cats];
+}
+
+function renderTabs(){
+  const el = document.getElementById("catTabs");
+  el.innerHTML = getCats().map(c=>
+    `<button class="cat-tab ${c===activeCat?'active':''}" onclick="setCat('${c.replace(/'/g,"\\'")}')">${c}</button>`
+  ).join("");
+}
+
+function setCat(c){ activeCat=c; renderTabs(); renderMenu(); }
+
+function renderMenu(){
+  const q = document.getElementById("searchBox").value.trim().toLowerCase();
+  let items = MENU_DATA;
+  if(activeCat!=="Semua") items = items.filter(i=>i.category===activeCat);
+  if(q) items = items.filter(i=>i.name.toLowerCase().includes(q));
+  document.getElementById("menuGrid").innerHTML = items.map((i)=>{
+    const idx = MENU_DATA.indexOf(i);
+    return `<button class="item-btn" onclick="addItem(${idx})">
+      <span class="nm">${i.name}</span>
+      <span class="pr">RM${i.price.toFixed(2)}</span>
+    </button>`;
+  }).join("") || `<div class="cart-empty">Takde item padan</div>`;
+}
+
+/* ---------- CART ---------- */
+function addItem(idx){
+  const it = MENU_DATA[idx];
+  const found = cart.find(c=>c.name===it.name);
+  if(found) found.qty++;
+  else cart.push({name:it.name, price:it.price, qty:1});
+  renderCart();
+  if(window.innerWidth<=720) openCartBrief();
+}
+
+function ubahQty(i, delta){
+  cart[i].qty += delta;
+  if(cart[i].qty<=0) cart.splice(i,1);
+  renderCart();
+}
+
+function kosongkanCart(){
+  if(cart.length && !confirm("Kosongkan troli?")) return;
+  cart=[]; renderCart();
+}
+
+function cartTotal(){ return cart.reduce((s,c)=>s+c.price*c.qty,0); }
+function cartCount(){ return cart.reduce((s,c)=>s+c.qty,0); }
+
+function renderCart(){
+  const list = document.getElementById("cartList");
+  if(!cart.length){
+    list.innerHTML = `<div class="cart-empty">Tekan item menu untuk tambah order</div>`;
+  } else {
+    list.innerHTML = cart.map((c,i)=>`
+      <div class="cart-row">
+        <div class="info">
+          <div class="nm">${c.name}</div>
+          <div class="pr">RM${c.price.toFixed(2)}</div>
+        </div>
+        <div class="qty-ctrl">
+          <button onclick="ubahQty(${i},-1)">−</button>
+          <span class="q">${c.qty}</span>
+          <button onclick="ubahQty(${i},1)">+</button>
+        </div>
+        <div class="row-total">RM${(c.price*c.qty).toFixed(2)}</div>
+      </div>
+    `).join("");
+  }
+  document.getElementById("cartTitle").textContent = `TROLI (${cartCount()})`;
+  document.getElementById("totalAmt").textContent = `RM${cartTotal().toFixed(2)}`;
+  document.getElementById("btnHantar").disabled = !cart.length || sending;
+}
+
+/* ---------- SUBMIT ORDER ---------- */
+async function hantarOrder(){
+  if(!cart.length || sending) return;
+  sending = true;
+  document.getElementById("btnHantar").disabled = true;
+  document.getElementById("btnHantar").textContent = "MENGHANTAR...";
+  document.getElementById("retryBar").classList.remove("show");
+
+  const meja = document.getElementById("mejaInput").value.trim() || "Kaunter";
+
+  /* NOTA SCHEMA: payload ni disamakan dgn order.html supaya dashboard.html
+     boleh papar order POS tanpa ubah apa-apa kat dashboard:
+       meja  (bukan table_no) — order.html hantar parseInt(meja)||0, tapi POS
+             kaunter boleh terima nama/label bukan nombor juga, jadi hantar
+             raw string terus (Postgres text column terima kedua-dua).
+       items — {nama, harga, qty} (bukan {name, price, qty}), sepadan dgn
+             cara dashboard.html baca o.items[].nama / .harga / .qty.
+       jumlah (bukan total) — sepadan dgn o.jumlah dalam dashboard.html.
+       status "baru" — sama value macam order.html & tab default dashboard.
+       source: "pos" — tambahan untuk bezakan asal order kaunter vs QR meja. */
+  const payload = {
+    meja: meja,
+    items: cart.map(c=>({nama:c.name, harga:c.price, qty:c.qty})),
+    jumlah: cartTotal(),
+    status: "baru",
+    source: "pos"
+  };
+
+  try{
+    const client = getSb();
+    if(!client) throw new Error("Supabase belum setup — paste URL & key kat CONFIG dulu");
+    const { error } = await client.from("orders").insert(payload);
+    if(error) throw error;
+    toast(`✅ Order masuk dapur (${meja})`);
+    cart=[];
+    document.getElementById("mejaInput").value="";
+    renderCart();
+    closeCart();
+  }catch(e){
+    console.error(e);
+    toast("Order gagal. Cuba lagi.", true);
+    document.getElementById("retryBar").classList.add("show");
+  }finally{
+    sending=false;
+    document.getElementById("btnHantar").textContent = "HANTAR ORDER KE DAPUR";
+    renderCart();
+  }
+}
+
+/* ---------- UI HELPERS ---------- */
+let toastTimer;
+function toast(msg, isErr){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (isErr?" err":"");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+
+function toggleCart(){
+  if(window.innerWidth>720) return;
+  document.getElementById("cartSide").classList.toggle("open");
+}
+function openCartBrief(){ /* flash cart head so cashier nampak item masuk */
+  const t = document.getElementById("cartTitle");
+  t.style.transition="none"; t.style.opacity=".4";
+  requestAnimationFrame(()=>{ t.style.transition="opacity .3s"; t.style.opacity="1"; });
+}
+function closeCart(){
+  document.getElementById("cartSide").classList.remove("open");
+}
+
+/* ---------- NETWORK DOT ---------- */
+function updateNet(){
+  document.getElementById("netDot").classList.toggle("offline", !navigator.onLine);
+}
+window.addEventListener("online", updateNet);
+window.addEventListener("offline", updateNet);
+
+/* ---------- INIT ---------- */
+renderTabs();
+renderMenu();
+renderCart();
+updateNet();
+</script>
+</body>
+</html>
