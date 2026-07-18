@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resit Digital — Restoran Seri Nian</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --merah:#C8102E; --merah-dk:#9E0C24; --emas:#C99A2E;
+  --ink:#2B1A14; --ink-soft:#6E5A50; --bg:#F4EDE0; --hijau:#3F8A4C;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;padding:24px 14px}
+h1,h2{font-family:'Fraunces',serif;font-weight:900}
+.wrap{width:100%;max-width:380px}
+.brand{text-align:center;margin-bottom:18px}
+.brand h1{font-size:1.4rem;color:var(--merah)}
+.brand .sub{font-size:.8rem;color:var(--ink-soft);margin-top:2px}
+.card{background:#fff;border-radius:18px;padding:22px;box-shadow:0 8px 30px rgba(43,26,20,.1);border-left:6px solid var(--emas)}
+.meja{font-size:1.3rem;font-weight:900;margin-bottom:2px}
+.masa{font-size:.78rem;color:var(--ink-soft);margin-bottom:16px}
+.vendor-block{margin:14px 0;padding-bottom:12px;border-bottom:1px dashed rgba(43,26,20,.15)}
+.vendor-block:last-of-type{border-bottom:none}
+.vendor-name{font-weight:800;font-size:.8rem;color:var(--merah);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px}
+.vendor-block ul{list-style:none}
+.vendor-block li{display:flex;justify-content:space-between;font-size:.92rem;padding:5px 0;border-bottom:1px dashed rgba(43,26,20,.08)}
+.subtotal{display:flex;justify-content:space-between;font-size:.85rem;font-weight:700;color:var(--ink-soft);margin-top:6px}
+.grand{display:flex;justify-content:space-between;font-family:'Fraunces',serif;font-weight:900;font-size:1.4rem;color:var(--merah);border-top:2px dashed rgba(43,26,20,.2);padding-top:14px;margin-top:16px}
+.foot{text-align:center;font-size:.78rem;color:var(--ink-soft);margin-top:18px}
+.state{text-align:center;padding:60px 20px;color:var(--ink-soft)}
+.state b{display:block;font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <h1>Restoran Seri Nian</h1>
+    <div class="sub">Resit Digital</div>
+  </div>
+  <div id="content" class="state">Memuatkan resit...</div>
+</div>
+
+<script>
+/* ============ KONFIG SUPABASE (sama macam pos.html) ============ */
+const SUPABASE_URL      = "https://afndxjdgxwhgcczuoeah.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbmR4amRneHdoZ2NjenVvZWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzMDIxOTQsImV4cCI6MjA5OTg3ODE5NH0.zWj_4z4kDNvR0NnmP-RDGDIseynFEr_QBgBRT0JWWOE";
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* Kod resit dalam URL ni UUID rawak (bukan ID order berurutan), jadi tak
+   boleh diteka/dienumerate — sesiapa dgn kod betul sahaja boleh tengok
+   resit tu. Page ni public (takde login), sengaja ringkas macam resit
+   fizikal biasa. */
+const code = new URLSearchParams(location.search).get('code');
+
+function fmtMasa(ts){
+  return new Date(ts).toLocaleString('ms-MY', {dateStyle:'medium', timeStyle:'short'});
+}
+
+async function load(){
+  const content = document.getElementById('content');
+  if(!code){
+    content.innerHTML = `<div class="state"><b>Resit tak sah</b>Kod resit tiada dalam pautan ni.</div>`;
+    return;
+  }
+  const { data, error } = await supa.from('orders').select('*').eq('resit_code', code);
+  if(error || !data || !data.length){
+    content.innerHTML = `<div class="state"><b>Resit tak dijumpai</b>Sila rujuk kaunter kalau ini satu kesilapan.</div>`;
+    return;
+  }
+  const grandTotal = data.reduce((s,o)=>s+o.jumlah,0);
+  const meja = data[0].meja;
+  const masa = data.slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0].created_at;
+  const vendorHtml = data.map(o=>{
+    const itemsHtml = o.items.map(it=>`<li><span>${it.qty}× ${it.nama}</span><span>RM${(it.qty*it.harga).toFixed(2)}</span></li>`).join('');
+    return `
+      <div class="vendor-block">
+        <div class="vendor-name">${o.vendor || 'Restoran Seri Nian'}</div>
+        <ul>${itemsHtml}</ul>
+        <div class="subtotal"><span>Subjumlah</span><span>RM${o.jumlah.toFixed(2)}</span></div>
+      </div>`;
+  }).join('');
+  content.className = '';
+  content.innerHTML = `
+    <div class="card">
+      <div class="meja">Meja ${meja}</div>
+      <div class="masa">${fmtMasa(masa)}</div>
+      ${vendorHtml}
+      <div class="grand"><span>Jumlah</span><span>RM${grandTotal.toFixed(2)}</span></div>
+    </div>
+    <div class="foot">Terima kasih kerana menjamu selera bersama kami!</div>
+  `;
+}
+
+load();
+</script>
+</body>
+</html>

@@ -554,11 +554,25 @@ function dashRenderResit(list){
 }
 
 /* Guna #receiptPrint & CSS @media print yang sama dgn buildReceipt() POS */
-function dashPrintResit(meja){
+/* Kod resit rawak (UUID) — bukan senarai ID order berurutan — supaya
+   resit.html?code=... tak boleh diteka/dienumerate oleh orang lain.
+   Disimpan pada semua row order dalam group ni (kolum resit_code). */
+async function dashPrintResit(meja){
   const group = dashResitByMeja[meja];
   if(!group) return;
   const grandTotal = group.reduce((s,o)=>s+o.jumlah,0);
   const masa = new Date().toLocaleString('ms-MY', {dateStyle:'short', timeStyle:'short'});
+
+  const code = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+'-'+Math.random().toString(36).slice(2));
+  const client = getSb();
+  if(client){
+    const ids = group.map(o=>o.id);
+    await client.from('orders').update({resit_code: code}).in('id', ids);
+  }
+  const dir = location.pathname.replace(/[^/]*$/, ''); // buang segmen terakhir (pos.html/pos/dll), kekal direktori
+  const resitUrl = `${location.origin}${dir}resit.html?code=${code}`;
+  const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(resitUrl)}`;
+
   const vendorSections = group.map(o => {
     const itemsHtml = o.items.map(it => `
       <tr><td colspan="3">${it.nama}</td></tr>
@@ -576,6 +590,11 @@ function dashPrintResit(meja){
     <div class="line"></div>
     ${vendorSections}
     <table><tr><td class="total">JUMLAH</td><td></td><td class="r total">RM${grandTotal.toFixed(2)}</td></tr></table>
+    <div class="line"></div>
+    <div style="text-align:center">
+      <img src="${qrImg}" style="width:100px;height:100px" alt="QR Resit Digital">
+      <div style="font-size:9px;margin-top:2px">Scan utk resit digital</div>
+    </div>
     <div class="foot">Terima kasih!</div>
   `;
   window.print();
