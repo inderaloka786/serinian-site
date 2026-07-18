@@ -34,10 +34,16 @@ h1,h2,h3{font-family:'Fraunces',serif;font-weight:900}
   font-size:1.05rem;margin:22px 0 10px 16px;display:flex;align-items:center;gap:12px;color:var(--ink-soft);
 }
 .kat-title::after{content:"";flex:1;height:1px;background:rgba(43,26,20,.1);border-radius:2px}
-.vendor-label{
-  font-size:.72rem;font-weight:800;color:var(--merah);text-transform:uppercase;
-  letter-spacing:.06em;margin:14px 0 6px 16px;
+.vendor-tabs{
+  display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px 16px;
 }
+.vendor-tab{
+  padding:9px 18px;border-radius:999px;border:2px solid var(--merah);background:#fff;
+  color:var(--merah);font-weight:800;font-size:.82rem;cursor:pointer;font-family:'Karla',sans-serif;
+  transition:background .15s,color .15s;
+}
+.vendor-tab.active{background:var(--merah);color:#fff}
+.vendor-panel .item:first-of-type{margin-top:0}
 .item{margin-left:16px}
 .item{
   background:#fff;border-radius:16px;padding:16px;display:flex;gap:14px;align-items:center;
@@ -207,6 +213,8 @@ const MENU_DATA = [
 ];
 /* =============================================================================== */
 
+function cssSafe(s){ return s.replace(/[^a-z0-9]/gi,'_'); }
+
 function renderMenu(){
   const wrap = document.getElementById('menuWrap');
 
@@ -238,13 +246,13 @@ function renderMenu(){
       }
 
       /* Sesetengah kategori (contoh Sarapan Pagi) ada item dari lebih
-         satu vendor (Restoran Seri Nian / Laman Roti / Neans). Kalau
-         item dalam kategori ni ada tag vendor, asingkan papar ikut
-         vendor dgn label kecil, supaya pelanggan tahu item tu dari
-         gerai/vendor mana. */
+         satu vendor (Restoran Seri Nian / Laman Roti / Neans). Kalau ada
+         >1 vendor, papar sebagai tab/pill yang boleh diklik — hanya
+         vendor yang aktif tunjuk menu dia, yang lain sorok, supaya senarai
+         tak jadi panjang bertimbun untuk kategori camping macam ni. */
       const katItems = byKat[kat];
       const vendorsInKat = [...new Set(katItems.map(m => m.vendor).filter(Boolean))];
-      const showVendorLabel = vendorsInKat.length > 1;
+      const useVendorTabs = vendorsInKat.length > 1;
 
       const byVendor = {}, vendorOrder = [];
       katItems.forEach(m => {
@@ -253,29 +261,56 @@ function renderMenu(){
         byVendor[v].push(m);
       });
 
-      vendorOrder.forEach(v => {
-        if(showVendorLabel && v !== '__none__'){
-          const vLabel = document.createElement('div');
-          vLabel.className = 'vendor-label'; vLabel.textContent = v;
-          wrap.appendChild(vLabel);
-        }
-        byVendor[v].forEach(m => {
-          const row = document.createElement('div');
-          row.className = 'item';
+      function buildItemsHtml(list){
+        return list.map(m => {
           const thumb = m.img
             ? `<img class="thumb" src="${m.img}" alt="${m.nama}">`
             : `<div class="thumb-x">${m.nama.charAt(0)}</div>`;
           const isNum = typeof m.harga === 'number';
           const hargaTxt = isNum ? (m.harga > 0 ? `RM${m.harga.toFixed(2).replace('.00','')}` : 'Tanya harga') : m.harga;
-          row.innerHTML = `
+          return `<div class="item">
             ${thumb}
-            <div class="t"><b>${m.nama}</b>${m.desc ? `<small>${m.desc}</small>` : ''}<span class="harga">${hargaTxt}</span></div>`;
-          wrap.appendChild(row);
+            <div class="t"><b>${m.nama}</b>${m.desc ? `<small>${m.desc}</small>` : ''}<span class="harga">${hargaTxt}</span></div>
+          </div>`;
+        }).join('');
+      }
+
+      if(useVendorTabs){
+        const groupId = 'vg_' + cssSafe(kat);
+        const tabsEl = document.createElement('div');
+        tabsEl.className = 'vendor-tabs';
+        tabsEl.setAttribute('data-group', groupId);
+        tabsEl.innerHTML = vendorOrder.map((v,i) =>
+          `<button class="vendor-tab ${i===0?'active':''}" data-group="${groupId}" data-vendor="${cssSafe(v)}">${v}</button>`
+        ).join('');
+        wrap.appendChild(tabsEl);
+
+        vendorOrder.forEach((v,i) => {
+          const panel = document.createElement('div');
+          panel.className = 'vendor-panel';
+          panel.setAttribute('data-group', groupId);
+          panel.setAttribute('data-vendor', cssSafe(v));
+          panel.style.display = i===0 ? '' : 'none';
+          panel.innerHTML = buildItemsHtml(byVendor[v]);
+          wrap.appendChild(panel);
         });
-      });
+      } else {
+        wrap.insertAdjacentHTML('beforeend', buildItemsHtml(katItems));
+      }
     });
   });
 }
+
+document.getElementById('menuWrap').addEventListener('click', e => {
+  const tab = e.target.closest('.vendor-tab');
+  if(!tab) return;
+  const group = tab.dataset.group, vendor = tab.dataset.vendor;
+  document.querySelectorAll(`.vendor-tab[data-group="${group}"]`).forEach(t =>
+    t.classList.toggle('active', t.dataset.vendor === vendor));
+  document.querySelectorAll(`.vendor-panel[data-group="${group}"]`).forEach(p =>
+    p.style.display = p.dataset.vendor === vendor ? '' : 'none');
+});
+
 renderMenu();
 </script>
 </body>
