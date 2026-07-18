@@ -437,11 +437,11 @@ const MENU_DATA = [
 /* ============ LOGIN — kata laluan ringkas per akaun ============
    Bukan Supabase Auth sebenar, cuma gate client-side (password
    tersimpan dalam kod, boleh nampak kalau View Source — Aliff dah
-   setuju risiko ni sebab nak simple). "serian" = akaun master,
+   setuju risiko ni sebab nak simple). "serinian" = akaun master,
    boleh tukar antara semua 3 tab vendor. "lamanroti" / "neans"
    = akaun vendor, dikunci hanya pada tab masing-masing. */
 const LOGIN_ACCOUNTS = {
-  serian:    { password: "9999", vendor: null },
+  serinian:  { password: "9999", vendor: null },
   lamanroti: { password: "9999", vendor: "Laman Roti" },
   neans:     { password: "9999", vendor: "Neans" }
 };
@@ -499,7 +499,7 @@ function getVendors(){
   const all = [...new Set(MENU_DATA.map(i=>i.vendor))];
   const session = getSession();
   if(session && session.vendor) return [session.vendor]; // akaun vendor: satu tab je
-  return all; // akaun master (serian): semua tab
+  return all; // akaun master (serinian): semua tab
 }
 
 function renderVendorTabs(){

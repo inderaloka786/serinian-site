@@ -150,11 +150,11 @@ const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ============ LOGIN — sama akaun/kata laluan macam pos.html ============
    Akaun vendor (lamanroti/neans) dikunci terus pada dashboard vendor dia
-   (session menang atas ?vendor= URL). Akaun master (serian) dapat skrin
+   (session menang atas ?vendor= URL). Akaun master (serinian) dapat skrin
    cashier penuh secara default, tapi boleh guna ?vendor= untuk intip
    dashboard vendor tertentu kalau perlu. */
 const LOGIN_ACCOUNTS = {
-  serian:    { password: "9999", vendor: null },
+  serinian:  { password: "9999", vendor: null },
   lamanroti: { password: "9999", vendor: "Laman Roti" },
   neans:     { password: "9999", vendor: "Neans" }
 };
