@@ -71,6 +71,21 @@
     border:2px solid var(--garis);border-radius:10px;outline:none;
   }
   .search-bar input:focus{border-color:var(--hijau)}
+  .custom-box{
+    display:flex;gap:6px;padding:0 8px 8px;background:#fff;
+    border-bottom:1px solid var(--garis);flex-shrink:0;
+  }
+  .custom-box input{
+    padding:10px;font-size:13px;border:1.5px dashed var(--garis);border-radius:8px;outline:none;
+  }
+  .custom-box input:focus{border-color:var(--hijau);border-style:solid}
+  .custom-box input#customName{flex:1.6;min-width:0}
+  .custom-box input#customPrice{flex:1;min-width:0}
+  .custom-box button{
+    flex-shrink:0;padding:10px 14px;border:none;border-radius:8px;
+    background:var(--hijau-muda);color:var(--hijau-tua);font-weight:800;font-size:13px;font-family:inherit;
+  }
+  .custom-box button:active{background:var(--hijau);color:#fff}
   .vendor-tabs{
     display:flex;gap:6px;overflow-x:auto;padding:8px 8px 0;background:var(--hijau-tua);
     flex-shrink:0;scrollbar-width:none;
@@ -246,6 +261,11 @@
     <div class="search-bar">
       <input type="search" id="searchBox" placeholder="Cari menu..." oninput="renderMenu()">
     </div>
+    <div class="custom-box">
+      <input type="text" id="customName" placeholder="Nama item custom (tempahan khas)">
+      <input type="number" id="customPrice" placeholder="Harga" step="0.5" min="0">
+      <button onclick="addCustomItem()">+ Tambah</button>
+    </div>
     <div class="cat-tabs" id="catTabs"></div>
     <div class="menu-grid" id="menuGrid"></div>
   </div>
@@ -401,6 +421,27 @@ function addItem(idx){
   const found = cart.find(c=>c.name===it.name);
   if(found) found.qty++;
   else cart.push({name:it.name, price:it.price, qty:1});
+  renderCart();
+  if(window.innerWidth<=720) openCartBrief();
+}
+
+/* Item custom — untuk tempahan khas yang takde dalam menu (nama+harga
+   bebas taip). Terus masuk troli macam item biasa, ikut vendor tab
+   yang aktif masa tu. */
+function addCustomItem(){
+  const nameEl = document.getElementById("customName");
+  const priceEl = document.getElementById("customPrice");
+  const name = nameEl.value.trim();
+  const price = parseFloat(priceEl.value);
+  if(!name || isNaN(price) || price < 0){
+    toast("Isi nama & harga item custom dulu.", true);
+    return;
+  }
+  const found = cart.find(c=>c.name===name);
+  if(found) found.qty++;
+  else cart.push({name, price, qty:1});
+  nameEl.value = "";
+  priceEl.value = "";
   renderCart();
   if(window.innerWidth<=720) openCartBrief();
 }
