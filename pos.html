@@ -221,6 +221,31 @@
     }
     .cart-list{max-height:35vh}
   }
+
+  /* ===== RESIT (print) ===== */
+  .receipt-print{display:none}
+  #btnCetakResit{
+    width:100%;min-height:44px;border:none;border-radius:10px;margin-top:8px;
+    background:none;border:2px solid var(--hijau);color:var(--hijau-tua);
+    font-size:14px;font-weight:800;font-family:inherit;display:none;
+  }
+  #btnCetakResit.show{display:block}
+  @media print{
+    body *{visibility:hidden}
+    .receipt-print, .receipt-print *{visibility:visible}
+    .receipt-print{
+      display:block;position:absolute;top:0;left:0;width:78mm;
+      padding:4mm;font-family:'Courier New',monospace;color:#000;
+    }
+    .receipt-print h2{font-size:14px;text-align:center;margin-bottom:2px}
+    .receipt-print .sub{font-size:10px;text-align:center;margin-bottom:6px}
+    .receipt-print .line{border-top:1px dashed #000;margin:6px 0}
+    .receipt-print table{width:100%;border-collapse:collapse;font-size:11px}
+    .receipt-print td{padding:2px 0}
+    .receipt-print .r{text-align:right}
+    .receipt-print .total{font-size:13px;font-weight:800}
+    .receipt-print .foot{text-align:center;font-size:10px;margin-top:8px}
+  }
 </style>
 </head>
 <body>
@@ -286,12 +311,15 @@
         <span class="amt" id="totalAmt">RM0.00</span>
       </div>
       <button class="btn-hantar" id="btnHantar" onclick="hantarOrder()" disabled>HANTAR ORDER KE DAPUR</button>
+      <button id="btnCetakResit" onclick="window.print()">🖨️ Cetak Resit (Order Terakhir)</button>
     </div>
   </div>
 
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="receipt-print" id="receiptPrint"></div>
 
 <script>
 /* ============================================================
@@ -486,6 +514,36 @@ function renderCart(){
 }
 
 /* ---------- SUBMIT ORDER ---------- */
+/* Resit dibina dari payload YANG BARU DIHANTAR (bukan cart, sebab cart
+   dikosongkan lepas hantar). Cetak guna window.print() + CSS @media
+   print — berfungsi dgn printer thermal yang install macam printer
+   biasa (USB/Bluetooth), takde protokol raw diperlukan. */
+function buildReceipt(payload){
+  const masa = new Date().toLocaleString('ms-MY', {dateStyle:'short', timeStyle:'short'});
+  const itemsHtml = payload.items.map(it => `
+    <tr>
+      <td colspan="3">${it.nama}</td>
+    </tr>
+    <tr>
+      <td>${it.qty} x RM${it.harga.toFixed(2)}</td>
+      <td></td>
+      <td class="r">RM${(it.qty*it.harga).toFixed(2)}</td>
+    </tr>
+  `).join('');
+  document.getElementById('receiptPrint').innerHTML = `
+    <h2>${payload.vendor}</h2>
+    <div class="sub">Restoran Seri Nian<br>${masa}</div>
+    <div class="line"></div>
+    <div>Meja/Nama: <b>${payload.meja}</b></div>
+    <div class="line"></div>
+    <table>${itemsHtml}</table>
+    <div class="line"></div>
+    <table><tr><td class="total">JUMLAH</td><td></td><td class="r total">RM${payload.jumlah.toFixed(2)}</td></tr></table>
+    <div class="foot">Terima kasih!</div>
+  `;
+  document.getElementById('btnCetakResit').classList.add('show');
+}
+
 async function hantarOrder(){
   if(!cart.length || sending) return;
   sending = true;
@@ -523,6 +581,7 @@ async function hantarOrder(){
     const { error } = await client.from("orders").insert(payload);
     if(error) throw error;
     toast(`✅ Order masuk dapur (${meja})`);
+    buildReceipt(payload);
     cart=[];
     document.getElementById("mejaInput").value="";
     renderCart();
