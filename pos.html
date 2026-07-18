@@ -228,6 +228,7 @@
     <h1>POS Kaunter</h1>
     <div class="sub">Laman Roti Restoran Seri Nian</div>
   </div>
+  <a href="menu-admin.html" class="btn-logout" id="linkUrusMenu" style="display:none;text-decoration:none">Urus Menu</a>
   <button class="btn-logout" id="btnLogout" onclick="logout()">Log Keluar</button>
   <div class="status-dot" id="netDot" title="Sambungan"></div>
 </header>
@@ -276,161 +277,16 @@
 /* ============================================================
    ⚙️ CONFIG
 
-   SUPABASE_URL + SUPABASE_ANON_KEY sama macam order.html /
-   dashboard.html — tapi kedua-dua fail tu (lokal & live) masih
-   guna placeholder "GANTI_DENGAN_...". Key sebenar belum wujud
-   dalam repo ni. Tampal kat sini bila Aliff bagi value sebenar
-   dari Supabase project settings, pastu samakan juga dalam
-   order.html + dashboard.html.
-
-   MENU_DATA: 128 item diterbitkan drpd MENU_DATA sebenar dalam
-   order.html (123 entri sumber, serinian-v3-merah.html rupanya
-   takde array menu — cuma landing page). 7 item "tanya harga"
-   (Roti Canai, Nasi Lemak, Lontong, Nasi Goreng, Mee Goreng,
-   Mee Hoon Goreng, Aneka Kuih Muih) digugurkan sebab takde
-   harga tetap untuk troli POS. Minuman dgn 2 harga (panas/
-   sejuk) dipecah jadi 2 entri berasingan.
+   Menu sekarang dimuat DINAMIK dari table Supabase `menu_items`
+   (bukan hardcode) — lihat loadMenuFromDB() di bawah. Ni bermakna
+   Aliff boleh tambah/edit/padam item guna skrin "Urus Menu" (akaun
+   serinian sahaja) tanpa perlu ubah kod terus.
    ============================================================ */
 
 const SUPABASE_URL      = "https://afndxjdgxwhgcczuoeah.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbmR4amRneHdoZ2NjenVvZWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzMDIxOTQsImV4cCI6MjA5OTg3ODE5NH0.zWj_4z4kDNvR0NnmP-RDGDIseynFEr_QBgBRT0JWWOE";
 
-const MENU_DATA = [
-  {name:"Beriyani Ayam Merah", price:12, category:"Nasi Beriyani", vendor:"Restoran Seri Nian"},
-  {name:"Beriyani Daging Masak Hitam", price:14, category:"Nasi Beriyani", vendor:"Restoran Seri Nian"},
-  {name:"Beriyani Kambing", price:17, category:"Nasi Beriyani", vendor:"Restoran Seri Nian"},
-  {name:"Roti Titab Biasa", price:5, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Roti Titab King", price:6.5, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Roti Titab Cheese", price:7, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Roti Titab King Cheese", price:8.5, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Roti Bakar", price:6, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Roti Bakar Kaya", price:5, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Waffle Plain", price:4, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Waffle Choc", price:5, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Waffle Strawberry", price:5, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Waffle Blueberry", price:5, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Waffle Peanut", price:5, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Waffle Kaya", price:5, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Lempeng Tradisi", price:5, category:"Sarapan Pagi", vendor:"Neans"},
-  {name:"Lempeng Kelapa", price:3.5, category:"Sarapan Pagi", vendor:"Neans"},
-  {name:"Lempeng Pisang", price:4, category:"Sarapan Pagi", vendor:"Neans"},
-  {name:"Lempeng Keju", price:4.5, category:"Sarapan Pagi", vendor:"Neans"},
-  {name:"Cekodok Pisang", price:5, category:"Sarapan Pagi", vendor:"Neans"},
-  {name:"Roti Kacang Phool", price:10, category:"Sarapan Pagi", vendor:"Neans"},
-  {name:"Roti Mantao Sambal", price:6, category:"Sarapan Pagi", vendor:"Neans"},
-  {name:"Roti Mantao Cendawan", price:9, category:"Sarapan Pagi", vendor:"Neans"},
-  {name:"Roti Garlic & Mushroom Soup", price:9, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Telur 1/2 Masak", price:3, category:"Sarapan Pagi", vendor:"Laman Roti"},
-  {name:"Nasi Goreng Nian", price:7, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Kampung", price:7.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Cina", price:7, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Thai", price:9.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng USA", price:9.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Ayam", price:9.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Daging", price:9.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Udang", price:9, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Sotong", price:9, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Ikan Masin", price:8, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Belacan", price:7.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Cendawan", price:8, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Cili Padi", price:7.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Ayam Kunyit", price:8.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Daging Kunyit", price:9.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Tom Yam", price:8, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Phattaya", price:8, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Phat Prik Ayam", price:8.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Phat Prik Daging", price:9.5, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Nasi Goreng Chicken Chop", price:16, category:"Nasi Goreng", vendor:"Restoran Seri Nian"},
-  {name:"Goreng Nian", price:6.5, category:"Goreng Panas", vendor:"Restoran Seri Nian"},
-  {name:"Kung Fu", price:9, category:"Goreng Panas", vendor:"Restoran Seri Nian"},
-  {name:"Tom Yam", price:8.5, category:"Goreng Panas", vendor:"Restoran Seri Nian"},
-  {name:"Ladna", price:9, category:"Goreng Panas", vendor:"Restoran Seri Nian"},
-  {name:"Sup", price:7.5, category:"Goreng Panas", vendor:"Restoran Seri Nian"},
-  {name:"Mee Maggie Kari", price:7.5, category:"Goreng Panas", vendor:"Restoran Seri Nian"},
-  {name:"Char Kuey Tiow", price:8.5, category:"Goreng Panas", vendor:"Restoran Seri Nian"},
-  {name:"Phat Prik Ayam", price:7, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Phat Prik Daging", price:8, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Phat Prik Seafood", price:9, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Daging Merah", price:7.5, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Ayam Merah", price:7, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Daging Kunyit", price:7.5, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Ayam Kunyit", price:7, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Ayam Kicap", price:7, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Ayam Halia", price:7.5, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Telur Bistik", price:8, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Telur Bungkus", price:8, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Sotong / Udang Tepung", price:8, category:"Lauk Pauk", vendor:"Restoran Seri Nian"},
-  {name:"Sup Ayam", price:7.5, category:"Sup Segar", vendor:"Restoran Seri Nian"},
-  {name:"Sup Daging", price:8, category:"Sup Segar", vendor:"Restoran Seri Nian"},
-  {name:"Sup Campur", price:10, category:"Sup Segar", vendor:"Restoran Seri Nian"},
-  {name:"Sup Tulang", price:13, category:"Sup Segar", vendor:"Restoran Seri Nian"},
-  {name:"Sup Ekor", price:16, category:"Sup Segar", vendor:"Restoran Seri Nian"},
-  {name:"Sup Sayur", price:7, category:"Sup Segar", vendor:"Restoran Seri Nian"},
-  {name:"Thom Yam Ayam", price:8, category:"Thom Yum", vendor:"Restoran Seri Nian"},
-  {name:"Thom Yam Daging", price:9, category:"Thom Yum", vendor:"Restoran Seri Nian"},
-  {name:"Thom Yam Campur", price:10, category:"Thom Yum", vendor:"Restoran Seri Nian"},
-  {name:"Thom Yam Seafood", price:9, category:"Thom Yum", vendor:"Restoran Seri Nian"},
-  {name:"Sayur Khailan Ikan Masin", price:6.5, category:"Sayur Masak", vendor:"Restoran Seri Nian"},
-  {name:"Sayur Kangkung Goreng Biasa", price:6.5, category:"Sayur Masak", vendor:"Restoran Seri Nian"},
-  {name:"Sayur Kangkung Belacan", price:6.5, category:"Sayur Masak", vendor:"Restoran Seri Nian"},
-  {name:"Sayur Campur", price:7, category:"Sayur Masak", vendor:"Restoran Seri Nian"},
-  {name:"Ikan Kembung", price:15, category:"Set Ikan", vendor:"Restoran Seri Nian"},
-  {name:"Ikan Siakap", price:39, category:"Set Ikan", vendor:"Restoran Seri Nian"},
-  {name:"Set Dua", price:27, category:"Set Hidang", vendor:"Restoran Seri Nian"},
-  {name:"Set Empat", price:70, category:"Set Hidang", vendor:"Restoran Seri Nian"},
-  {name:"Set Enam", price:99, category:"Set Hidang", vendor:"Restoran Seri Nian"},
-  {name:"Ayam Penyet", price:11, category:"Set Hidang", vendor:"Restoran Seri Nian"},
-  {name:"Fish & Chip", price:15, category:"Western", vendor:"Restoran Seri Nian"},
-  {name:"Fishcake Crispy", price:7, category:"Western", vendor:"Restoran Seri Nian"},
-  {name:"Chicken Chop", price:13, category:"Western", vendor:"Restoran Seri Nian"},
-  {name:"Fries", price:7, category:"Western", vendor:"Restoran Seri Nian"},
-  {name:"Fries Meatball", price:10, category:"Western", vendor:"Restoran Seri Nian"},
-  {name:"Fried Fries", price:7, category:"Western", vendor:"Restoran Seri Nian"},
-  {name:"Sosej Cocktail", price:7, category:"Western", vendor:"Restoran Seri Nian"},
-  {name:"Teh (panas)", price:2.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Teh (sejuk)", price:3, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Teh O (panas)", price:1.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Teh O (sejuk)", price:2, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Kopi (panas)", price:2.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Kopi (sejuk)", price:3, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Kopi O (panas)", price:1.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Kopi O (sejuk)", price:2, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Nescafe (panas)", price:3.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Nescafe (sejuk)", price:4, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Milo (panas)", price:3.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Milo (sejuk)", price:4, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Neslo (panas)", price:4, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Neslo (sejuk)", price:4.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Horlick (panas)", price:3.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Horlick (sejuk)", price:4, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Sirap (panas)", price:1.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Sirap (sejuk)", price:2, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Limau (panas)", price:1.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Limau (sejuk)", price:2, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Barli (panas)", price:2, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Barli (sejuk)", price:2.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Sunquick (panas)", price:2.5, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Sunquick (sejuk)", price:3, category:"Minuman", vendor:"Restoran Seri Nian"},
-  {name:"Longan", price:5, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Epal", price:5, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Orange", price:5, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Carrot", price:5, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Lemon", price:2.5, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Lemon Madu", price:3.5, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Limau Asam Boi", price:2.5, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Laici", price:3.5, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Teh O Laici", price:4, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Sirap Laici", price:4, category:"Air Buah", vendor:"Restoran Seri Nian"},
-  {name:"Belgium Choco", price:5, category:"Minuman Special", vendor:"Restoran Seri Nian"},
-  {name:"Belgium Mocha", price:5, category:"Minuman Special", vendor:"Restoran Seri Nian"},
-  {name:"Green Tea", price:5, category:"Minuman Special", vendor:"Restoran Seri Nian"},
-  {name:"Radix", price:4, category:"Minuman Special", vendor:"Restoran Seri Nian"},
-  {name:"Sumiyaki", price:5, category:"Minuman Special", vendor:"Restoran Seri Nian"},
-  {name:"Kopi Jantan", price:4, category:"Minuman Special", vendor:"Restoran Seri Nian"},
-  {name:"Ali Cafe", price:4, category:"Minuman Special", vendor:"Restoran Seri Nian"},
-  {name:"Extra Joss", price:3, category:"Minuman Special", vendor:"Restoran Seri Nian"},
-  {name:"Laicikang", price:6, category:"Minuman Special", vendor:"Restoran Seri Nian"}
-];
+let MENU_DATA = []; // diisi oleh loadMenuFromDB() masa startApp()
 
 /* ============================================================ */
 
@@ -671,15 +527,40 @@ function updateNet(){
 window.addEventListener("online", updateNet);
 window.addEventListener("offline", updateNet);
 
+/* ---------- MENU DATA (Supabase) ---------- */
+async function loadMenuFromDB(){
+  const client = getSb();
+  if(!client) return;
+  const { data, error } = await client.from("menu_items")
+    .select("id,name,price,category,vendor")
+    .eq("active", true)
+    .order("id");
+  if(error){ console.error(error); return; }
+  MENU_DATA = data;
+}
+
 /* ---------- INIT ---------- */
-function startApp(){
+async function startApp(){
   const session = getSession();
   if(session && session.vendor) activeVendor = session.vendor; // akaun vendor terkunci
+  if(session && session.vendor === null) document.getElementById("linkUrusMenu").style.display = "inline-block";
+  await loadMenuFromDB();
   renderVendorTabs();
   renderTabs();
   renderMenu();
   renderCart();
   updateNet();
+
+  // Menu berubah (admin tambah/edit/padam) — refresh terus tanpa reload
+  const client = getSb();
+  if(client){
+    client.channel("menu-live")
+      .on("postgres_changes", {event:"*", schema:"public", table:"menu_items"}, async () => {
+        await loadMenuFromDB();
+        renderVendorTabs(); renderTabs(); renderMenu();
+      })
+      .subscribe();
+  }
 }
 
 const existingSession = getSession();

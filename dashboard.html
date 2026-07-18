@@ -43,6 +43,8 @@ header h1{font-size:1.5rem}
 .card.disiapkan{border-left-color:#E0A32A}
 .card.selesai{border-left-color:var(--hijau);opacity:.6}
 .card.selesai.resit{border-left-color:var(--emas);opacity:1}
+.card.batal{border-left-color:var(--ink-soft);opacity:.55}
+.card.batal .jumlah{text-decoration:line-through}
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
 .card-top .meja{font-family:'Fraunces',serif;font-weight:900;font-size:1.5rem}
 .card-top .masa{font-size:.78rem;color:var(--ink-soft);text-align:right}
@@ -79,6 +81,7 @@ header h1{font-size:1.5rem}
 .btn-baru{background:var(--merah);color:#fff}
 .btn-disiap{background:#E0A32A;color:#fff}
 .btn-selesai{background:var(--hijau);color:#fff}
+.btn-batal{background:none;color:var(--ink-soft);border:2px solid rgba(43,26,20,.15) !important;flex:none !important;width:auto;padding:11px 14px !important}
 .empty{padding:60px 28px;text-align:center;color:var(--ink-soft)}
 .empty b{display:block;font-family:'Fraunces',serif;font-size:1.4rem;color:var(--ink);margin-bottom:8px}
 .btn-logout{background:none;border:none;color:#fff;opacity:.8;font-size:.78rem;font-weight:700;padding:6px;margin-right:14px;cursor:pointer}
@@ -135,6 +138,7 @@ header h1{font-size:1.5rem}
   <div class="tab active" data-f="baru">Baru <span class="count-badge" id="cBaru">0</span></div>
   <div class="tab" data-f="disiapkan">Disiapkan <span class="count-badge" id="cDisiap">0</span></div>
   <div class="tab" data-f="selesai">Selesai <span class="count-badge" id="cSelesai">0</span></div>
+  <div class="tab" data-f="batal">Batal <span class="count-badge" id="cBatal">0</span></div>
   <div class="tab" data-f="semua">Semua</div>
 </div>
 
@@ -252,6 +256,7 @@ function render(){
   document.getElementById('cBaru').textContent = scoped.filter(o=>o.status==='baru').length;
   document.getElementById('cDisiap').textContent = scoped.filter(o=>o.status==='disiapkan').length;
   document.getElementById('cSelesai').textContent = scoped.filter(o=>o.status==='selesai').length;
+  document.getElementById('cBatal').textContent = scoped.filter(o=>o.status==='batal').length;
 
   if(!vendorView && filter === 'selesai'){
     renderResit(list);
@@ -268,10 +273,12 @@ function render(){
     let actions = '';
     if(vendorView){
       if(o.status === 'baru'){
-        actions = `<button class="btn-disiap" data-id="${o.id}" data-s="disiapkan">Mula Siapkan</button>`;
+        actions = `<button class="btn-disiap" data-id="${o.id}" data-s="disiapkan">Mula Siapkan</button><button class="btn-batal" data-id="${o.id}" data-s="batal">Batalkan</button>`;
       } else if(o.status === 'disiapkan'){
-        actions = `<button class="btn-selesai" data-id="${o.id}" data-s="selesai">Tandakan Selesai</button>`;
-      } else {
+        actions = `<button class="btn-selesai" data-id="${o.id}" data-s="selesai">Tandakan Selesai</button><button class="btn-batal" data-id="${o.id}" data-s="batal">Batalkan</button>`;
+      } else if(o.status === 'selesai'){
+        actions = `<button class="btn-baru" data-id="${o.id}" data-s="baru">Buka Semula</button>`;
+      } else { // batal
         actions = `<button class="btn-baru" data-id="${o.id}" data-s="baru">Buka Semula</button>`;
       }
     }
