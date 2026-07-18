@@ -44,6 +44,11 @@ h1,h2,h3{font-family:'Fraunces',serif;font-weight:900}
 }
 .vendor-tab.active{background:var(--merah);color:#fff}
 .vendor-panel .item:first-of-type{margin-top:0}
+.unavail-note{
+  margin-left:16px;background:#fff;border-radius:14px;padding:16px;
+  color:var(--ink-soft);font-size:.88rem;box-shadow:0 2px 10px rgba(43,26,20,.05);
+  border-left:4px solid var(--emas);
+}
 .item{margin-left:16px}
 .item{
   background:#fff;border-radius:16px;padding:16px;display:flex;gap:14px;align-items:center;
@@ -215,6 +220,21 @@ const MENU_DATA = [
 
 function cssSafe(s){ return s.replace(/[^a-z0-9]/gi,'_'); }
 
+/* Sesetengah kategori cuma tersedia pada hari/waktu tertentu (contoh Nasi
+   Beriyani — Jumaat mulai 12tgh sahaja). day ikut Date.getDay() (0=Ahad
+   ... 5=Jumaat, 6=Sabtu), fromHour ikut waktu tempatan 24 jam. */
+const CATEGORY_AVAILABILITY = {
+  "Nasi Beriyani": { day: 5, fromHour: 12, label: "Hanya tersedia hari Jumaat, mulai jam 12 tengahari" }
+};
+
+function checkAvailability(top){
+  const rule = CATEGORY_AVAILABILITY[top];
+  if(!rule) return { available: true };
+  const now = new Date();
+  const available = now.getDay() === rule.day && now.getHours() >= rule.fromHour;
+  return { available, label: rule.label };
+}
+
 function renderMenu(){
   const wrap = document.getElementById('menuWrap');
 
@@ -230,6 +250,15 @@ function renderMenu(){
     h2.className = 'top-title';
     h2.textContent = top;
     wrap.appendChild(h2);
+
+    const avail = checkAvailability(top);
+    if(!avail.available){
+      const note = document.createElement('div');
+      note.className = 'unavail-note';
+      note.textContent = avail.label;
+      wrap.appendChild(note);
+      return; // skip papar item — belum masuk waktu tersedia
+    }
 
     const byKat = {}, katOrder = [];
     items.forEach(m => {
