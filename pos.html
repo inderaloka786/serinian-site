@@ -222,44 +222,64 @@
     .cart-list{max-height:35vh}
   }
 
-  /* ===== ORDER AKTIF (vendor tandakan selesai) ===== */
   .badge-aktif{
     background:#fff;color:var(--hijau-tua);border-radius:999px;
     padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px;
   }
-  .oa-overlay{
-    display:none;position:fixed;inset:0;background:rgba(34,48,31,.5);
-    z-index:200;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;
+
+  /* ===== DASHBOARD (dibenamkan terus dalam pos.html — satu fail, satu login,
+     satu screen). Vendor/cashier tekan "Dashboard" kat header, terus toggle
+     overlay ni, tak payah navigate ke fail lain. Style diasingkan dgn nama
+     variable --d-* supaya tak clash dgn tema hijau POS. ===== */
+  .dash-overlay{
+    display:none;position:fixed;inset:0;z-index:300;overflow-y:auto;
+    --d-merah:#C8102E; --d-merah-dk:#9E0C24; --d-emas:#C99A2E;
+    --d-ink:#2B1A14; --d-ink-soft:#6E5A50; --d-bg:#F4EDE0; --d-hijau:#3F8A4C;
+    background:var(--d-bg);font-family:'Plus Jakarta Sans',system-ui,sans-serif;
   }
-  .oa-overlay.show{display:flex}
-  .oa-panel{
-    background:var(--kertas);border-radius:16px;width:100%;max-width:480px;
-    max-height:90vh;overflow-y:auto;padding:16px;
+  .dash-overlay.show{display:block}
+  .dash-head{
+    background:linear-gradient(160deg,var(--d-merah),var(--d-merah-dk));color:#fff;
+    padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:5;
   }
-  .oa-panel-head{
-    display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;
+  .dash-head h2{font-size:17px;font-weight:800}
+  .dash-head button{background:none;border:none;color:#fff;opacity:.85;font-size:12px;font-weight:700;padding:6px}
+  .dash-tabs{display:flex;gap:8px;padding:14px 20px 0;flex-wrap:wrap}
+  .dash-tab{
+    padding:9px 18px;border-radius:999px;background:#fff;color:var(--d-ink-soft);
+    font-weight:800;font-size:.82rem;border:2px solid transparent;cursor:pointer;
   }
-  .oa-panel-head h2{font-size:16px;font-weight:800;color:var(--hijau-tua)}
-  .oa-panel-head button{background:none;border:none;font-size:22px;color:var(--ink);padding:4px 8px}
-  .oa-empty{padding:30px 10px;text-align:center;color:#7a8a76;font-size:13px}
-  .oa-card{
-    background:#fff;border:1.5px solid var(--garis);border-radius:12px;
-    padding:12px;margin-bottom:10px;
-  }
-  .oa-card.disiapkan{border-color:#e0a32a}
-  .oa-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
-  .oa-card-top .meja{font-weight:800;font-size:15px}
-  .oa-card-top .masa{font-size:11px;color:#7a8a76}
-  .oa-card ul{list-style:none;margin:6px 0}
-  .oa-card li{display:flex;justify-content:space-between;font-size:12px;padding:2px 0}
-  .oa-card .jum{font-weight:800;font-size:13px;margin-top:6px;color:var(--hijau-tua)}
-  .oa-actions{display:flex;gap:8px;margin-top:10px}
-  .oa-actions button{
-    flex:1;min-height:38px;border:none;border-radius:8px;font-weight:800;font-size:12px;
-  }
-  .btn-oa-disiap{background:#e0a32a;color:#fff}
-  .btn-oa-selesai{background:var(--hijau);color:#fff}
-  .btn-oa-batal{background:none;color:#7a8a76;border:2px solid var(--garis) !important;flex:none !important;padding:0 12px !important}
+  .dash-tab.active{border-color:var(--d-merah);color:var(--d-merah)}
+  .dash-count{background:var(--d-merah);color:#fff;border-radius:999px;padding:1px 7px;font-size:.7rem;margin-left:5px}
+  .dash-board{padding:18px 20px 50px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .dash-card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 16px rgba(43,26,20,.08);border-left:5px solid var(--d-merah);color:var(--d-ink)}
+  .dash-card.disiapkan{border-left-color:#E0A32A}
+  .dash-card.selesai{border-left-color:var(--d-hijau);opacity:.65}
+  .dash-card.selesai.resit{border-left-color:var(--d-emas);opacity:1}
+  .dash-card.batal{border-left-color:var(--d-ink-soft);opacity:.55}
+  .dash-card.batal .dash-jum{text-decoration:line-through}
+  .dash-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+  .dash-card-top .meja{font-weight:900;font-size:1.2rem}
+  .dash-card-top .masa{font-size:.72rem;color:var(--d-ink-soft);text-align:right}
+  .dash-vbadge{display:inline-block;margin-top:3px;padding:2px 9px;border-radius:999px;font-size:.65rem;font-weight:800;background:var(--d-bg);color:var(--d-ink-soft);border:1px solid rgba(43,26,20,.15)}
+  .dash-card ul{list-style:none;margin:8px 0}
+  .dash-card li{display:flex;justify-content:space-between;padding:4px 0;font-size:.85rem;border-bottom:1px dashed rgba(43,26,20,.1)}
+  .dash-jum{display:flex;justify-content:space-between;font-weight:900;color:var(--d-merah);font-size:1.05rem;margin-top:8px}
+  .dash-actions{display:flex;gap:6px;margin-top:12px}
+  .dash-actions button{flex:1;padding:10px;border-radius:9px;border:none;font-weight:800;font-size:.8rem;cursor:pointer}
+  .dash-btn-baru{background:var(--d-merah);color:#fff}
+  .dash-btn-disiap{background:#E0A32A;color:#fff}
+  .dash-btn-selesai{background:var(--d-hijau);color:#fff}
+  .dash-btn-batal{background:none;color:var(--d-ink-soft);border:2px solid rgba(43,26,20,.15) !important;flex:none !important;width:auto;padding:10px 12px !important}
+  .dash-btn-cetak{width:100%;min-height:40px;border:none;border-radius:9px;background:var(--d-emas);color:#fff;font-weight:800;font-size:.82rem;cursor:pointer}
+  .dash-resit-vendor{margin:12px 0;padding-bottom:8px;border-bottom:1px solid rgba(43,26,20,.1)}
+  .dash-resit-vendor:last-of-type{border-bottom:none}
+  .dash-resit-vendor-name{font-weight:800;font-size:.78rem;color:var(--d-merah);text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
+  .dash-resit-subtotal{display:flex;justify-content:space-between;font-size:.82rem;font-weight:700;color:var(--d-ink-soft);margin-top:3px}
+  .dash-jum.grand{font-size:1.15rem;border-top:2px dashed rgba(43,26,20,.2);padding-top:10px;margin-top:12px}
+  .dash-empty{padding:50px 20px;text-align:center;color:var(--d-ink-soft);grid-column:1/-1}
+  .dash-empty b{display:block;font-size:1.2rem;color:var(--d-ink);margin-bottom:6px}
 
   /* ===== RESIT (print) ===== */
   .receipt-print{display:none}
@@ -308,20 +328,25 @@
     <h1>POS Kaunter</h1>
     <div class="sub">Restoran Seri Nian</div>
   </div>
+  <button class="btn-logout" onclick="toggleDashboard(true)">Dashboard<span class="badge-aktif" id="badgeAktif">0</span></button>
   <a href="menu-admin.html" class="btn-logout" id="linkUrusMenu" style="display:none;text-decoration:none">Urus Menu</a>
-  <button class="btn-logout" id="btnOrderAktif" onclick="toggleOrderPanel(true)">Order Aktif<span class="badge-aktif" id="badgeAktif">0</span></button>
   <button class="btn-logout" id="btnLogout" onclick="logout()">Log Keluar</button>
   <div class="status-dot" id="netDot" title="Sambungan"></div>
 </header>
 
-<div class="oa-overlay" id="oaOverlay">
-  <div class="oa-panel">
-    <div class="oa-panel-head">
-      <h2>Order Aktif</h2>
-      <button onclick="toggleOrderPanel(false)">&times;</button>
-    </div>
-    <div id="oaList"></div>
+<div class="dash-overlay" id="dashboardScreen">
+  <div class="dash-head">
+    <h2 id="dashTitle">Dashboard</h2>
+    <button onclick="toggleDashboard(false)">&times; Tutup</button>
   </div>
+  <div class="dash-tabs" id="dashTabs">
+    <div class="dash-tab active" data-f="baru" id="dashTabBaru">Baru <span class="dash-count" id="dcBaru">0</span></div>
+    <div class="dash-tab" data-f="disiapkan" id="dashTabDisiap">Disiapkan <span class="dash-count" id="dcDisiap">0</span></div>
+    <div class="dash-tab" data-f="selesai">Selesai <span class="dash-count" id="dcSelesai">0</span></div>
+    <div class="dash-tab" data-f="batal">Batal <span class="dash-count" id="dcBatal">0</span></div>
+    <div class="dash-tab" data-f="semua">Semua</div>
+  </div>
+  <div class="dash-board" id="dashBoard"></div>
 </div>
 
 <div class="retry-bar" id="retryBar">
@@ -448,7 +473,6 @@ let cart = [];          // {name, price, qty}
 let activeVendor = "Restoran Seri Nian";
 let activeCat = "Semua";
 let sending = false;
-let activeOrders = [];  // order status baru/disiapkan untuk vendor semasa (panel "Order Aktif")
 
 /* ---------- VENDOR + MENU RENDER ---------- */
 function getVendors(){
@@ -465,71 +489,223 @@ function renderVendorTabs(){
   ).join("");
 }
 
-function setVendor(v){ activeVendor=v; activeCat="Semua"; renderVendorTabs(); renderTabs(); renderMenu(); loadActiveOrders(); }
+function setVendor(v){ activeVendor=v; activeCat="Semua"; renderVendorTabs(); renderTabs(); renderMenu(); }
 
-/* ---------- ORDER AKTIF (vendor tandakan Selesai terus dalam POS) ----------
+/* ============================================================
+   DASHBOARD (dibenamkan terus dalam pos.html — satu fail, satu login)
    Alur kerja sebenar: staff bagitahu order verbal ke vendor -> vendor taip
    dalam POS ni ("Hantar Order ke Dapur", status jadi "baru") -> bila makanan
-   dah siap/dihantar ke meja, vendor tekan "Selesai" DALAM PANEL NI (bukan
-   perlu bukak dashboard.html berasingan) -> order jadi status "selesai" dan
-   baru muncul kat dashboard cashier untuk digabung jadi resit & bayaran. */
-function fmtMasaOA(ts){
+   dah siap/dihantar ke meja, vendor tekan "Selesai" DALAM DASHBOARD NI (tak
+   payah bukak fail lain) -> order jadi status "selesai" dan baru muncul kat
+   tab Selesai cashier untuk digabung jadi resit & bayaran.
+
+   Akaun vendor (lamanroti/neans) = dashboard dikunci pada vendor dia sahaja,
+   dgn butang Mula Siapkan/Selesai/Batal (macam dashboard.html asal).
+   Akaun master (serinian) = mod cashier: papar SEMUA vendor, tab Baru/
+   Disiapkan disorok (bukan tanggungjawab cashier), terus default ke tab
+   Selesai untuk kutip bayaran + cetak resit gabungan ikut no meja.
+   ============================================================ */
+let dashOrders = [];
+let dashFilter = 'baru';
+let dashVendorView = null; // null = mod cashier (semua vendor)
+let dashResitByMeja = {};
+let dashChannelReady = false;
+
+function dashFmtMasa(ts){
   return new Date(ts).toLocaleTimeString('ms-MY', {hour:'2-digit', minute:'2-digit'});
 }
 
-async function loadActiveOrders(){
-  const client = getSb();
-  if(!client) return;
-  const { data, error } = await client.from("orders")
-    .select("*")
-    .eq("vendor", activeVendor)
-    .in("status", ["baru","disiapkan"])
-    .order("created_at", {ascending:true});
-  if(error){ console.error(error); return; }
-  activeOrders = data;
-  renderOrderAktif();
-}
-
-function renderOrderAktif(){
-  document.getElementById("badgeAktif").textContent = activeOrders.length;
-  const list = document.getElementById("oaList");
-  if(!activeOrders.length){
-    list.innerHTML = `<div class="oa-empty">Takde order aktif buat masa ini.</div>`;
+function dashRenderResit(list){
+  const board = document.getElementById('dashBoard');
+  const byMeja = {};
+  list.forEach(o => {
+    if(!byMeja[o.meja]) byMeja[o.meja] = [];
+    byMeja[o.meja].push(o);
+  });
+  dashResitByMeja = byMeja;
+  const mejaKeys = Object.keys(byMeja);
+  if(!mejaKeys.length){
+    board.innerHTML = `<div class="dash-empty"><b>Takde resit</b>Order yang selesai akan muncul di sini sebagai resit.</div>`;
     return;
   }
-  list.innerHTML = activeOrders.map(o=>{
-    const itemsHtml = o.items.map(it=>`<li><span>${it.qty}x ${it.nama}</span><span>RM${(it.qty*it.harga).toFixed(2)}</span></li>`).join("");
-    const actions = o.status === "baru"
-      ? `<button class="btn-oa-disiap" data-id="${o.id}" data-s="disiapkan">Mula Siapkan</button><button class="btn-oa-selesai" data-id="${o.id}" data-s="selesai">Selesai</button><button class="btn-oa-batal" data-id="${o.id}" data-s="batal">Batal</button>`
-      : `<button class="btn-oa-selesai" data-id="${o.id}" data-s="selesai">Selesai</button><button class="btn-oa-batal" data-id="${o.id}" data-s="batal">Batal</button>`;
+  board.innerHTML = mejaKeys.map(meja => {
+    const group = byMeja[meja];
+    const grandTotal = group.reduce((s,o)=>s+o.jumlah,0);
+    const vendorSections = group.map(o => {
+      const itemsHtml = o.items.map(it => `<li><span>${it.qty}× ${it.nama}</span><span>RM${(it.qty*it.harga).toFixed(2)}</span></li>`).join('');
+      return `
+        <div class="dash-resit-vendor">
+          <div class="dash-resit-vendor-name">${o.vendor || 'Restoran Seri Nian'}</div>
+          <ul>${itemsHtml}</ul>
+          <div class="dash-resit-subtotal"><span>Subjumlah</span><span>RM${o.jumlah.toFixed(2)}</span></div>
+        </div>`;
+    }).join('');
     return `
-      <div class="oa-card ${o.status}">
-        <div class="oa-card-top">
-          <span class="meja">Meja ${o.meja}</span>
-          <span class="masa">${fmtMasaOA(o.created_at)}</span>
+      <div class="dash-card selesai resit">
+        <div class="dash-card-top">
+          <div class="meja">Meja ${meja}</div>
+          <div class="masa">RESIT</div>
         </div>
-        <ul>${itemsHtml}</ul>
-        <div class="jum">RM${o.jumlah.toFixed(2)}</div>
-        <div class="oa-actions">${actions}</div>
+        ${vendorSections}
+        <div class="dash-jum grand"><span>Jumlah Keseluruhan</span><span>RM${grandTotal.toFixed(2)}</span></div>
+        <div class="dash-actions"><button class="dash-btn-cetak" data-meja="${meja}">🖨️ Cetak Resit</button></div>
       </div>`;
-  }).join("");
+  }).join('');
 }
 
-document.getElementById("oaList").addEventListener("click", async e=>{
-  const btn = e.target.closest("button[data-id]");
+/* Guna #receiptPrint & CSS @media print yang sama dgn buildReceipt() POS */
+function dashPrintResit(meja){
+  const group = dashResitByMeja[meja];
+  if(!group) return;
+  const grandTotal = group.reduce((s,o)=>s+o.jumlah,0);
+  const masa = new Date().toLocaleString('ms-MY', {dateStyle:'short', timeStyle:'short'});
+  const vendorSections = group.map(o => {
+    const itemsHtml = o.items.map(it => `
+      <tr><td colspan="3">${it.nama}</td></tr>
+      <tr>
+        <td>${it.qty} x RM${it.harga.toFixed(2)}</td><td></td>
+        <td class="r">RM${(it.qty*it.harga).toFixed(2)}</td>
+      </tr>`).join('');
+    return `<div class="rv-name">${o.vendor || 'Restoran Seri Nian'}</div><table>${itemsHtml}</table><div class="line"></div>`;
+  }).join('');
+  document.getElementById('receiptPrint').innerHTML = `
+    <h2>Restoran Seri Nian</h2>
+    <div class="sub">${masa}</div>
+    <div class="line"></div>
+    <div>Meja/Nama: <b>${meja}</b></div>
+    <div class="line"></div>
+    ${vendorSections}
+    <table><tr><td class="total">JUMLAH</td><td></td><td class="r total">RM${grandTotal.toFixed(2)}</td></tr></table>
+    <div class="foot">Terima kasih!</div>
+  `;
+  window.print();
+}
+
+function dashRender(){
+  const board = document.getElementById('dashBoard');
+  const scoped = dashVendorView
+    ? dashOrders.filter(o => (o.vendor || 'Restoran Seri Nian') === dashVendorView)
+    : dashOrders;
+  const list = dashFilter === 'semua' ? scoped : scoped.filter(o => o.status === dashFilter);
+
+  document.getElementById('dcBaru').textContent = scoped.filter(o=>o.status==='baru').length;
+  document.getElementById('dcDisiap').textContent = scoped.filter(o=>o.status==='disiapkan').length;
+  document.getElementById('dcSelesai').textContent = scoped.filter(o=>o.status==='selesai').length;
+  document.getElementById('dcBatal').textContent = scoped.filter(o=>o.status==='batal').length;
+  document.getElementById('badgeAktif').textContent = scoped.filter(o=>o.status==='baru'||o.status==='disiapkan').length;
+
+  if(!dashVendorView && dashFilter === 'selesai'){
+    dashRenderResit(list);
+    return;
+  }
+
+  if(!list.length){
+    board.innerHTML = `<div class="dash-empty"><b>Takde order</b>Order baru akan muncul kat sini secara live.</div>`;
+    return;
+  }
+
+  board.innerHTML = list.map(o => {
+    const itemsHtml = o.items.map(it => `<li><span>${it.qty}× ${it.nama}</span><span>RM${(it.qty*it.harga).toFixed(2)}</span></li>`).join('');
+    let actions = '';
+    if(dashVendorView){
+      if(o.status === 'baru'){
+        actions = `<button class="dash-btn-disiap" data-id="${o.id}" data-s="disiapkan">Mula Siapkan</button><button class="dash-btn-selesai" data-id="${o.id}" data-s="selesai">Selesai</button><button class="dash-btn-batal" data-id="${o.id}" data-s="batal">Batal</button>`;
+      } else if(o.status === 'disiapkan'){
+        actions = `<button class="dash-btn-selesai" data-id="${o.id}" data-s="selesai">Tandakan Selesai</button><button class="dash-btn-batal" data-id="${o.id}" data-s="batal">Batal</button>`;
+      } else if(o.status === 'selesai'){
+        actions = `<button class="dash-btn-baru" data-id="${o.id}" data-s="baru">Buka Semula</button>`;
+      } else { // batal
+        actions = `<button class="dash-btn-baru" data-id="${o.id}" data-s="baru">Buka Semula</button>`;
+      }
+    }
+    return `
+      <div class="dash-card ${o.status}">
+        <div class="dash-card-top">
+          <div class="meja">Meja ${o.meja}</div>
+          <div class="masa">
+            ${dashFmtMasa(o.created_at)}<br>
+            <span class="dash-vbadge">${o.vendor || 'Restoran Seri Nian'}</span>
+          </div>
+        </div>
+        <ul>${itemsHtml}</ul>
+        <div class="dash-jum"><span>Jumlah</span><span>RM${o.jumlah.toFixed(2)}</span></div>
+        ${actions ? `<div class="dash-actions">${actions}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('dashBoard').addEventListener('click', async e => {
+  const cetakBtn = e.target.closest('button.dash-btn-cetak');
+  if(cetakBtn){ dashPrintResit(cetakBtn.dataset.meja); return; }
+
+  const btn = e.target.closest('button[data-id]');
   if(!btn) return;
   const { id, s } = btn.dataset;
   btn.disabled = true;
   const client = getSb();
-  const { error } = await client.from("orders").update({status:s}).eq("id", id);
-  if(error){ console.error(error); toast("Gagal kemaskini order.", true); btn.disabled=false; return; }
-  activeOrders = activeOrders.filter(o=>String(o.id)!==String(id));
-  renderOrderAktif();
+  const { error } = await client.from('orders').update({status: s}).eq('id', id);
+  if(error){ console.error(error); toast('Gagal kemaskini order.', true); btn.disabled = false; return; }
+  const o = dashOrders.find(x => x.id === id);
+  if(o) o.status = s;
+  dashRender();
 });
 
-function toggleOrderPanel(show){
-  document.getElementById("oaOverlay").classList.toggle("show", show);
-  if(show) loadActiveOrders();
+document.querySelectorAll('.dash-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    dashFilter = tab.dataset.f;
+    dashRender();
+  });
+});
+
+async function dashLoadInitial(){
+  const client = getSb();
+  if(!client) return;
+  const { data, error } = await client.from('orders')
+    .select('*')
+    .gte('created_at', new Date(Date.now() - 24*60*60*1000).toISOString())
+    .order('created_at', {ascending:false});
+  if(error){ console.error(error); return; }
+  dashOrders = data;
+  dashRender();
+}
+
+function toggleDashboard(show){
+  document.getElementById('dashboardScreen').classList.toggle('show', show);
+  if(!show) return;
+
+  const session = getSession();
+  dashVendorView = session && session.vendor ? session.vendor : null;
+  document.getElementById('dashTitle').textContent = dashVendorView ? `Dashboard ${dashVendorView}` : 'Dashboard Kaunter — Serinian';
+
+  if(!dashVendorView){
+    document.getElementById('dashTabBaru').style.display = 'none';
+    document.getElementById('dashTabDisiap').style.display = 'none';
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.dash-tab[data-f="selesai"]').classList.add('active');
+    dashFilter = 'selesai';
+  } else {
+    document.getElementById('dashTabBaru').style.display = '';
+    document.getElementById('dashTabDisiap').style.display = '';
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.dash-tab[data-f="baru"]').classList.add('active');
+    dashFilter = 'baru';
+  }
+
+  dashLoadInitial();
+
+  if(!dashChannelReady){
+    dashChannelReady = true;
+    const client = getSb();
+    if(client){
+      client.channel('orders-live-dash')
+        .on('postgres_changes', {event:'*', schema:'public', table:'orders'}, async () => {
+          await dashLoadInitial();
+        })
+        .subscribe();
+    }
+  }
 }
 
 function getCats(){
@@ -699,7 +875,7 @@ async function hantarOrder(){
     if(error) throw error;
     toast(`✅ Order masuk dapur (${meja})`);
     buildReceipt(payload);
-    loadActiveOrders();
+    dashLoadInitial();
     cart=[];
     document.getElementById("mejaInput").value="";
     renderCart();
@@ -762,13 +938,14 @@ async function startApp(){
   const session = getSession();
   if(session && session.vendor) activeVendor = session.vendor; // akaun vendor terkunci
   if(session && session.vendor === null) document.getElementById("linkUrusMenu").style.display = "inline-block";
+  dashVendorView = session && session.vendor ? session.vendor : null;
   await loadMenuFromDB();
   renderVendorTabs();
   renderTabs();
   renderMenu();
   renderCart();
   updateNet();
-  await loadActiveOrders();
+  await dashLoadInitial(); // supaya badge Dashboard kat header betul dari awal, walaupun screen tak dibuka
 
   // Menu berubah (admin tambah/edit/padam) — refresh terus tanpa reload
   const client = getSb();
@@ -780,12 +957,13 @@ async function startApp(){
       })
       .subscribe();
 
-    // Order Aktif live — refresh badge/panel bila ada order baru/berubah utk vendor ni
+    // Order live — badge Dashboard & board refresh terus tanpa reload
     client.channel("orders-live-pos")
       .on("postgres_changes", {event:"*", schema:"public", table:"orders"}, async () => {
-        await loadActiveOrders();
+        await dashLoadInitial();
       })
       .subscribe();
+    dashChannelReady = true;
   }
 }
 
