@@ -220,20 +220,12 @@ const MENU_DATA = [
 
 function cssSafe(s){ return s.replace(/[^a-z0-9]/gi,'_'); }
 
-/* Sesetengah kategori cuma tersedia pada hari/waktu tertentu (contoh Nasi
-   Beriyani — Jumaat mulai 12tgh sahaja). day ikut Date.getDay() (0=Ahad
-   ... 5=Jumaat, 6=Sabtu), fromHour ikut waktu tempatan 24 jam. */
+/* Sesetengah kategori ada nota ketersediaan (contoh Nasi Beriyani — Jumaat
+   mulai 12tgh sahaja). Ini sekadar nota pemberitahuan — menu & gambar tetap
+   dipapar seperti biasa, bukan disorok ikut hari/masa semasa. */
 const CATEGORY_AVAILABILITY = {
-  "Nasi Beriyani": { day: 5, fromHour: 12, label: "Hanya tersedia hari Jumaat, mulai jam 12 tengahari" }
+  "Nasi Beriyani": { label: "Hanya tersedia hari Jumaat, mulai jam 12 tengahari" }
 };
-
-function checkAvailability(top){
-  const rule = CATEGORY_AVAILABILITY[top];
-  if(!rule) return { available: true };
-  const now = new Date();
-  const available = now.getDay() === rule.day && now.getHours() >= rule.fromHour;
-  return { available, label: rule.label };
-}
 
 function renderMenu(){
   const wrap = document.getElementById('menuWrap');
@@ -251,13 +243,12 @@ function renderMenu(){
     h2.textContent = top;
     wrap.appendChild(h2);
 
-    const avail = checkAvailability(top);
-    if(!avail.available){
+    const rule = CATEGORY_AVAILABILITY[top];
+    if(rule){
       const note = document.createElement('div');
       note.className = 'unavail-note';
-      note.textContent = avail.label;
+      note.textContent = rule.label;
       wrap.appendChild(note);
-      return; // skip papar item — belum masuk waktu tersedia
     }
 
     const byKat = {}, katOrder = [];
