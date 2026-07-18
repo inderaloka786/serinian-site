@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>POS Kaunter · Laman Roti Seri Nian</title>
+<title>POS Kaunter Seri Nian</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
@@ -233,18 +233,19 @@
   @media print{
     body *{visibility:hidden}
     .receipt-print, .receipt-print *{visibility:visible}
+    @page{size:58mm auto;margin:0}
     .receipt-print{
-      display:block;position:absolute;top:0;left:0;width:78mm;
-      padding:4mm;font-family:'Courier New',monospace;color:#000;
+      display:block;position:absolute;top:0;left:0;width:58mm;
+      padding:2mm;font-family:'Courier New',monospace;color:#000;
     }
-    .receipt-print h2{font-size:14px;text-align:center;margin-bottom:2px}
-    .receipt-print .sub{font-size:10px;text-align:center;margin-bottom:6px}
-    .receipt-print .line{border-top:1px dashed #000;margin:6px 0}
-    .receipt-print table{width:100%;border-collapse:collapse;font-size:11px}
-    .receipt-print td{padding:2px 0}
+    .receipt-print h2{font-size:12px;text-align:center;margin-bottom:2px}
+    .receipt-print .sub{font-size:9px;text-align:center;margin-bottom:5px}
+    .receipt-print .line{border-top:1px dashed #000;margin:4px 0}
+    .receipt-print table{width:100%;border-collapse:collapse;font-size:10px}
+    .receipt-print td{padding:1px 0}
     .receipt-print .r{text-align:right}
-    .receipt-print .total{font-size:13px;font-weight:800}
-    .receipt-print .foot{text-align:center;font-size:10px;margin-top:8px}
+    .receipt-print .total{font-size:11px;font-weight:800}
+    .receipt-print .foot{text-align:center;font-size:9px;margin-top:6px}
   }
 </style>
 </head>
@@ -253,7 +254,7 @@
 <div class="login-gate" id="loginGate">
   <div class="login-box">
     <h2>Log Masuk POS</h2>
-    <div class="sub">Laman Roti Restoran Seri Nian</div>
+    <div class="sub">Restoran Seri Nian</div>
     <form id="loginForm">
       <input type="text" id="loginUser" placeholder="Username" autocomplete="username" required>
       <input type="password" id="loginPass" placeholder="Kata Laluan" autocomplete="current-password" required>
@@ -266,7 +267,7 @@
 <header>
   <div>
     <h1>POS Kaunter</h1>
-    <div class="sub">Laman Roti Restoran Seri Nian</div>
+    <div class="sub">Restoran Seri Nian</div>
   </div>
   <a href="menu-admin.html" class="btn-logout" id="linkUrusMenu" style="display:none;text-decoration:none">Urus Menu</a>
   <button class="btn-logout" id="btnLogout" onclick="logout()">Log Keluar</button>
