@@ -109,6 +109,34 @@ header h1{font-size:1.5rem}
 .login-box button:active{background:var(--merah-dk)}
 .login-err{color:var(--merah);font-size:.82rem;font-weight:700;margin-top:8px;display:none}
 .login-err.show{display:block}
+
+.btn-cetak{
+  width:100%;min-height:42px;border:none;border-radius:10px;
+  background:var(--emas);color:#fff;font-weight:800;font-size:.85rem;cursor:pointer;
+}
+.btn-cetak:hover{opacity:.9}
+
+/* ===== RESIT (print) — sama teknik dgn pos.html, ikut lebar printer thermal
+   kaunter (58mm). window.print() + @media print, takde protokol raw perlu. ===== */
+.receipt-print{display:none}
+@media print{
+  body *{visibility:hidden}
+  .receipt-print, .receipt-print *{visibility:visible}
+  .receipt-print{
+    display:block;position:absolute;top:0;left:0;width:58mm;
+    padding:2mm;font-family:'Courier New',monospace;color:#000;
+  }
+  @page{size:58mm auto;margin:0}
+  .receipt-print h2{font-size:12px;text-align:center;margin-bottom:2px}
+  .receipt-print .sub{font-size:9px;text-align:center;margin-bottom:5px}
+  .receipt-print .line{border-top:1px dashed #000;margin:4px 0}
+  .receipt-print .rv-name{font-size:10px;font-weight:800;margin-top:4px}
+  .receipt-print table{width:100%;border-collapse:collapse;font-size:10px}
+  .receipt-print td{padding:1px 0}
+  .receipt-print .r{text-align:right}
+  .receipt-print .total{font-size:11px;font-weight:800}
+  .receipt-print .foot{text-align:center;font-size:9px;margin-top:6px}
+}
 </style>
 </head>
 <body>
@@ -135,14 +163,16 @@ header h1{font-size:1.5rem}
 </header>
 
 <div class="tabs">
-  <div class="tab active" data-f="baru">Baru <span class="count-badge" id="cBaru">0</span></div>
-  <div class="tab" data-f="disiapkan">Disiapkan <span class="count-badge" id="cDisiap">0</span></div>
+  <div class="tab active" data-f="baru" id="tabBaru">Baru <span class="count-badge" id="cBaru">0</span></div>
+  <div class="tab" data-f="disiapkan" id="tabDisiap">Disiapkan <span class="count-badge" id="cDisiap">0</span></div>
   <div class="tab" data-f="selesai">Selesai <span class="count-badge" id="cSelesai">0</span></div>
   <div class="tab" data-f="batal">Batal <span class="count-badge" id="cBatal">0</span></div>
   <div class="tab" data-f="semua">Semua</div>
 </div>
 
 <div class="board" id="board"></div>
+
+<div class="receipt-print" id="receiptPrint"></div>
 
 <script>
 /* ============ KONFIG SUPABASE — GANTI DUA NILAI NI (sama macam order.html) ============ */
@@ -210,6 +240,8 @@ function fmtMasa(ts){
 /* Cashier view (takde ?vendor=) + tab "Selesai": gabung semua order selesai
    ikut no meja jadi SATU resit (pecah ikut vendor dalam resit tu), sebab
    itu bentuk cashier nak kutip bayaran — bukan senarai order berasingan. */
+let resitByMeja = {}; // disimpan supaya btnCetak boleh rujuk balik data meja bila ditekan
+
 function renderResit(list){
   const board = document.getElementById('board');
   const byMeja = {};
@@ -217,6 +249,7 @@ function renderResit(list){
     if(!byMeja[o.meja]) byMeja[o.meja] = [];
     byMeja[o.meja].push(o);
   });
+  resitByMeja = byMeja;
   const mejaKeys = Object.keys(byMeja);
   if(!mejaKeys.length){
     board.innerHTML = `<div class="empty" style="grid-column:1/-1"><b>Takde resit</b>Order yang selesai akan muncul di sini sebagai resit.</div>`;
@@ -242,8 +275,43 @@ function renderResit(list){
         </div>
         ${vendorSections}
         <div class="jumlah grand"><span>Jumlah Keseluruhan</span><span>RM${grandTotal.toFixed(2)}</span></div>
+        <div class="actions"><button class="btn-cetak" data-meja="${meja}">🖨️ Cetak Resit</button></div>
       </div>`;
   }).join('');
+}
+
+/* Cetak resit gabungan (semua vendor + jumlah keseluruhan) untuk satu meja.
+   Sama teknik dgn pos.html: bina HTML dalam #receiptPrint (hidden), tunjuk
+   bila @media print, panggil window.print() — berfungsi dgn printer thermal
+   yang diinstall macam printer biasa (USB/Bluetooth), takde protokol khas. */
+function printResit(meja){
+  const group = resitByMeja[meja];
+  if(!group) return;
+  const grandTotal = group.reduce((s,o)=>s+o.jumlah,0);
+  const masa = new Date().toLocaleString('ms-MY', {dateStyle:'short', timeStyle:'short'});
+  const vendorSections = group.map(o => {
+    const itemsHtml = o.items.map(it => `
+      <tr><td colspan="3">${it.nama}</td></tr>
+      <tr>
+        <td>${it.qty} x RM${it.harga.toFixed(2)}</td><td></td>
+        <td class="r">RM${(it.qty*it.harga).toFixed(2)}</td>
+      </tr>`).join('');
+    return `
+      <div class="rv-name">${o.vendor || 'Restoran Seri Nian'}</div>
+      <table>${itemsHtml}</table>
+      <div class="line"></div>`;
+  }).join('');
+  document.getElementById('receiptPrint').innerHTML = `
+    <h2>Restoran Seri Nian</h2>
+    <div class="sub">${masa}</div>
+    <div class="line"></div>
+    <div>Meja/Nama: <b>${meja}</b></div>
+    <div class="line"></div>
+    ${vendorSections}
+    <table><tr><td class="total">JUMLAH</td><td></td><td class="r total">RM${grandTotal.toFixed(2)}</td></tr></table>
+    <div class="foot">Terima kasih!</div>
+  `;
+  window.print();
 }
 
 function render(){
@@ -299,6 +367,9 @@ function render(){
 }
 
 document.getElementById('board').addEventListener('click', async e => {
+  const cetakBtn = e.target.closest('button.btn-cetak');
+  if(cetakBtn){ printResit(cetakBtn.dataset.meja); return; }
+
   const btn = e.target.closest('button[data-id]');
   if(!btn) return;
   const { id, s } = btn.dataset;
@@ -342,6 +413,18 @@ function startApp(){
   const session = getSession();
   if(session && session.vendor) vendorView = session.vendor; // akaun vendor terkunci, menang atas ?vendor=
   if(vendorView) document.getElementById('dashTitle').textContent = `Dashboard ${vendorView}`;
+
+  /* Cashier (takde ?vendor=) tak perlu nampak order yang masih "baru"/
+     "disiapkan" — itu tanggungjawab vendor kat POS masing-masing.
+     Cashier cuma nak kutip bayaran bila order dah "Selesai", jadi
+     sorok dua tab tu dan terus default ke tab Selesai. */
+  if(!vendorView){
+    document.getElementById('tabBaru').style.display = 'none';
+    document.getElementById('tabDisiap').style.display = 'none';
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.tab[data-f="selesai"]').classList.add('active');
+    filter = 'selesai';
+  }
 
   supa.channel('orders-live')
     .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, payload => {

@@ -222,6 +222,45 @@
     .cart-list{max-height:35vh}
   }
 
+  /* ===== ORDER AKTIF (vendor tandakan selesai) ===== */
+  .badge-aktif{
+    background:#fff;color:var(--hijau-tua);border-radius:999px;
+    padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px;
+  }
+  .oa-overlay{
+    display:none;position:fixed;inset:0;background:rgba(34,48,31,.5);
+    z-index:200;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;
+  }
+  .oa-overlay.show{display:flex}
+  .oa-panel{
+    background:var(--kertas);border-radius:16px;width:100%;max-width:480px;
+    max-height:90vh;overflow-y:auto;padding:16px;
+  }
+  .oa-panel-head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;
+  }
+  .oa-panel-head h2{font-size:16px;font-weight:800;color:var(--hijau-tua)}
+  .oa-panel-head button{background:none;border:none;font-size:22px;color:var(--ink);padding:4px 8px}
+  .oa-empty{padding:30px 10px;text-align:center;color:#7a8a76;font-size:13px}
+  .oa-card{
+    background:#fff;border:1.5px solid var(--garis);border-radius:12px;
+    padding:12px;margin-bottom:10px;
+  }
+  .oa-card.disiapkan{border-color:#e0a32a}
+  .oa-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+  .oa-card-top .meja{font-weight:800;font-size:15px}
+  .oa-card-top .masa{font-size:11px;color:#7a8a76}
+  .oa-card ul{list-style:none;margin:6px 0}
+  .oa-card li{display:flex;justify-content:space-between;font-size:12px;padding:2px 0}
+  .oa-card .jum{font-weight:800;font-size:13px;margin-top:6px;color:var(--hijau-tua)}
+  .oa-actions{display:flex;gap:8px;margin-top:10px}
+  .oa-actions button{
+    flex:1;min-height:38px;border:none;border-radius:8px;font-weight:800;font-size:12px;
+  }
+  .btn-oa-disiap{background:#e0a32a;color:#fff}
+  .btn-oa-selesai{background:var(--hijau);color:#fff}
+  .btn-oa-batal{background:none;color:#7a8a76;border:2px solid var(--garis) !important;flex:none !important;padding:0 12px !important}
+
   /* ===== RESIT (print) ===== */
   .receipt-print{display:none}
   #btnCetakResit{
@@ -270,9 +309,20 @@
     <div class="sub">Restoran Seri Nian</div>
   </div>
   <a href="menu-admin.html" class="btn-logout" id="linkUrusMenu" style="display:none;text-decoration:none">Urus Menu</a>
+  <button class="btn-logout" id="btnOrderAktif" onclick="toggleOrderPanel(true)">Order Aktif<span class="badge-aktif" id="badgeAktif">0</span></button>
   <button class="btn-logout" id="btnLogout" onclick="logout()">Log Keluar</button>
   <div class="status-dot" id="netDot" title="Sambungan"></div>
 </header>
+
+<div class="oa-overlay" id="oaOverlay">
+  <div class="oa-panel">
+    <div class="oa-panel-head">
+      <h2>Order Aktif</h2>
+      <button onclick="toggleOrderPanel(false)">&times;</button>
+    </div>
+    <div id="oaList"></div>
+  </div>
+</div>
 
 <div class="retry-bar" id="retryBar">
   <span>Order tak masuk. Internet putus?</span>
@@ -398,6 +448,7 @@ let cart = [];          // {name, price, qty}
 let activeVendor = "Restoran Seri Nian";
 let activeCat = "Semua";
 let sending = false;
+let activeOrders = [];  // order status baru/disiapkan untuk vendor semasa (panel "Order Aktif")
 
 /* ---------- VENDOR + MENU RENDER ---------- */
 function getVendors(){
@@ -414,7 +465,72 @@ function renderVendorTabs(){
   ).join("");
 }
 
-function setVendor(v){ activeVendor=v; activeCat="Semua"; renderVendorTabs(); renderTabs(); renderMenu(); }
+function setVendor(v){ activeVendor=v; activeCat="Semua"; renderVendorTabs(); renderTabs(); renderMenu(); loadActiveOrders(); }
+
+/* ---------- ORDER AKTIF (vendor tandakan Selesai terus dalam POS) ----------
+   Alur kerja sebenar: staff bagitahu order verbal ke vendor -> vendor taip
+   dalam POS ni ("Hantar Order ke Dapur", status jadi "baru") -> bila makanan
+   dah siap/dihantar ke meja, vendor tekan "Selesai" DALAM PANEL NI (bukan
+   perlu bukak dashboard.html berasingan) -> order jadi status "selesai" dan
+   baru muncul kat dashboard cashier untuk digabung jadi resit & bayaran. */
+function fmtMasaOA(ts){
+  return new Date(ts).toLocaleTimeString('ms-MY', {hour:'2-digit', minute:'2-digit'});
+}
+
+async function loadActiveOrders(){
+  const client = getSb();
+  if(!client) return;
+  const { data, error } = await client.from("orders")
+    .select("*")
+    .eq("vendor", activeVendor)
+    .in("status", ["baru","disiapkan"])
+    .order("created_at", {ascending:true});
+  if(error){ console.error(error); return; }
+  activeOrders = data;
+  renderOrderAktif();
+}
+
+function renderOrderAktif(){
+  document.getElementById("badgeAktif").textContent = activeOrders.length;
+  const list = document.getElementById("oaList");
+  if(!activeOrders.length){
+    list.innerHTML = `<div class="oa-empty">Takde order aktif buat masa ini.</div>`;
+    return;
+  }
+  list.innerHTML = activeOrders.map(o=>{
+    const itemsHtml = o.items.map(it=>`<li><span>${it.qty}x ${it.nama}</span><span>RM${(it.qty*it.harga).toFixed(2)}</span></li>`).join("");
+    const actions = o.status === "baru"
+      ? `<button class="btn-oa-disiap" data-id="${o.id}" data-s="disiapkan">Mula Siapkan</button><button class="btn-oa-selesai" data-id="${o.id}" data-s="selesai">Selesai</button><button class="btn-oa-batal" data-id="${o.id}" data-s="batal">Batal</button>`
+      : `<button class="btn-oa-selesai" data-id="${o.id}" data-s="selesai">Selesai</button><button class="btn-oa-batal" data-id="${o.id}" data-s="batal">Batal</button>`;
+    return `
+      <div class="oa-card ${o.status}">
+        <div class="oa-card-top">
+          <span class="meja">Meja ${o.meja}</span>
+          <span class="masa">${fmtMasaOA(o.created_at)}</span>
+        </div>
+        <ul>${itemsHtml}</ul>
+        <div class="jum">RM${o.jumlah.toFixed(2)}</div>
+        <div class="oa-actions">${actions}</div>
+      </div>`;
+  }).join("");
+}
+
+document.getElementById("oaList").addEventListener("click", async e=>{
+  const btn = e.target.closest("button[data-id]");
+  if(!btn) return;
+  const { id, s } = btn.dataset;
+  btn.disabled = true;
+  const client = getSb();
+  const { error } = await client.from("orders").update({status:s}).eq("id", id);
+  if(error){ console.error(error); toast("Gagal kemaskini order.", true); btn.disabled=false; return; }
+  activeOrders = activeOrders.filter(o=>String(o.id)!==String(id));
+  renderOrderAktif();
+});
+
+function toggleOrderPanel(show){
+  document.getElementById("oaOverlay").classList.toggle("show", show);
+  if(show) loadActiveOrders();
+}
 
 function getCats(){
   const cats = [...new Set(MENU_DATA.filter(i=>i.vendor===activeVendor).map(i=>i.category))];
@@ -583,6 +699,7 @@ async function hantarOrder(){
     if(error) throw error;
     toast(`✅ Order masuk dapur (${meja})`);
     buildReceipt(payload);
+    loadActiveOrders();
     cart=[];
     document.getElementById("mejaInput").value="";
     renderCart();
@@ -651,6 +768,7 @@ async function startApp(){
   renderMenu();
   renderCart();
   updateNet();
+  await loadActiveOrders();
 
   // Menu berubah (admin tambah/edit/padam) — refresh terus tanpa reload
   const client = getSb();
@@ -659,6 +777,13 @@ async function startApp(){
       .on("postgres_changes", {event:"*", schema:"public", table:"menu_items"}, async () => {
         await loadMenuFromDB();
         renderVendorTabs(); renderTabs(); renderMenu();
+      })
+      .subscribe();
+
+    // Order Aktif live — refresh badge/panel bila ada order baru/berubah utk vendor ni
+    client.channel("orders-live-pos")
+      .on("postgres_changes", {event:"*", schema:"public", table:"orders"}, async () => {
+        await loadActiveOrders();
       })
       .subscribe();
   }
