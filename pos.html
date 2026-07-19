@@ -281,6 +281,11 @@
   .dash-resit-subtotal{display:flex;justify-content:space-between;font-size:.82rem;font-weight:700;color:var(--d-ink-soft);margin-top:3px}
   .dash-jum.grand{font-size:1.15rem;border-top:2px dashed rgba(43,26,20,.2);padding-top:10px;margin-top:12px}
   .dash-empty{padding:50px 20px;text-align:center;color:var(--d-ink-soft);grid-column:1/-1}
+  .dash-sales-head{grid-column:1/-1;margin-bottom:6px;font-weight:700;color:var(--d-ink)}
+  .dash-sales-head input{
+    padding:8px 10px;border:2px solid var(--d-merah);border-radius:8px;font-family:inherit;
+    font-size:.9rem;margin-left:6px;
+  }
   .dash-empty b{display:block;font-size:1.2rem;color:var(--d-ink);margin-bottom:6px}
 
   /* ===== RESIT (print) ===== */
@@ -347,6 +352,7 @@
     <div class="dash-tab" data-f="selesai">Selesai <span class="dash-count" id="dcSelesai">0</span></div>
     <div class="dash-tab" data-f="batal">Batal <span class="dash-count" id="dcBatal">0</span></div>
     <div class="dash-tab" data-f="semua">Semua</div>
+    <div class="dash-tab" data-f="jualan">📊 Jualan</div>
   </div>
   <div class="dash-board" id="dashBoard"></div>
 </div>
@@ -511,6 +517,12 @@ let dashOrders = [];
 let dashFilter = 'baru';
 let dashVendorView = null; // null = mod cashier (semua vendor)
 let dashResitByMeja = {};
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+let dashSalesDate = todayStr(); // tarikh aktif untuk tab Jualan
 let dashChannelReady = false;
 
 function dashFmtMasa(ts){
@@ -605,6 +617,62 @@ async function dashPrintResit(meja){
   window.print();
 }
 
+/* ---------- JUALAN (laporan sale ikut tarikh + vendor) ----------
+   Sumber angka jualan ialah order status "dibayar" sahaja (bukan "selesai"),
+   sebab itu status akhir lepas cashier confirm duit dah masuk — paling
+   tepat untuk laporan sale, bukan sekadar order siap dimasak. */
+async function dashRenderJualan(){
+  const board = document.getElementById('dashBoard');
+  board.innerHTML = `
+    <div class="dash-sales-head">
+      <label>Tarikh: <input type="date" id="salesDateInput" value="${dashSalesDate}"></label>
+    </div>
+    <div id="salesResult" class="dash-empty">Memuatkan...</div>
+  `;
+  document.getElementById('salesDateInput').addEventListener('change', e => {
+    dashSalesDate = e.target.value;
+    loadAndRenderSales();
+  });
+  await loadAndRenderSales();
+}
+
+async function loadAndRenderSales(){
+  const resultEl = document.getElementById('salesResult');
+  if(!resultEl) return;
+  const client = getSb();
+  if(!client) return;
+  const start = new Date(dashSalesDate + 'T00:00:00');
+  const end = new Date(start.getTime() + 24*60*60*1000);
+  let query = client.from('orders').select('*').eq('status', 'dibayar')
+    .gte('created_at', start.toISOString()).lt('created_at', end.toISOString());
+  if(dashVendorView) query = query.eq('vendor', dashVendorView);
+  const { data, error } = await query;
+  if(error){ resultEl.innerHTML = `<div class="dash-empty"><b>Ralat</b>Gagal muat data jualan.</div>`; return; }
+  if(!data.length){ resultEl.innerHTML = `<div class="dash-empty"><b>Takde jualan</b>Takde order dibayar pada tarikh ni.</div>`; return; }
+
+  const byVendor = {}, vendorOrder = [];
+  data.forEach(o => {
+    const v = o.vendor || 'Restoran Seri Nian';
+    if(!byVendor[v]){ byVendor[v] = {total:0, count:0}; vendorOrder.push(v); }
+    byVendor[v].total += o.jumlah;
+    byVendor[v].count += 1;
+  });
+  const grandTotal = data.reduce((s,o)=>s+o.jumlah,0);
+
+  const rows = vendorOrder.map(v => `
+    <div class="dash-card selesai resit">
+      <div class="dash-resit-vendor-name">${v}</div>
+      <div class="dash-resit-subtotal"><span>${byVendor[v].count} order</span><span>RM${byVendor[v].total.toFixed(2)}</span></div>
+    </div>`).join('');
+
+  resultEl.innerHTML = `
+    ${rows}
+    <div class="dash-card selesai resit">
+      <div class="dash-jum grand"><span>Jumlah Keseluruhan</span><span>RM${grandTotal.toFixed(2)}</span></div>
+    </div>
+  `;
+}
+
 function dashRender(){
   const board = document.getElementById('dashBoard');
   const scoped = dashVendorView
@@ -620,6 +688,11 @@ function dashRender(){
 
   if(!dashVendorView && dashFilter === 'selesai'){
     dashRenderResit(list);
+    return;
+  }
+
+  if(dashFilter === 'jualan'){
+    dashRenderJualan();
     return;
   }
 
