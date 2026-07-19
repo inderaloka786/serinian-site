@@ -259,6 +259,7 @@
   .dash-card.selesai.resit{border-left-color:var(--d-emas);opacity:1}
   .dash-card.batal{border-left-color:var(--d-ink-soft);opacity:.55}
   .dash-card.batal .dash-jum{text-decoration:line-through}
+  .dash-card.dibayar{border-left-color:var(--d-hijau);opacity:.5}
   .dash-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
   .dash-card-top .meja{font-weight:900;font-size:1.2rem}
   .dash-card-top .masa{font-size:.72rem;color:var(--d-ink-soft);text-align:right}
@@ -272,7 +273,8 @@
   .dash-btn-disiap{background:#E0A32A;color:#fff}
   .dash-btn-selesai{background:var(--d-hijau);color:#fff}
   .dash-btn-batal{background:none;color:var(--d-ink-soft);border:2px solid rgba(43,26,20,.15) !important;flex:none !important;width:auto;padding:10px 12px !important}
-  .dash-btn-cetak{width:100%;min-height:40px;border:none;border-radius:9px;background:var(--d-emas);color:#fff;font-weight:800;font-size:.82rem;cursor:pointer}
+  .dash-btn-cetak{flex:1;min-height:40px;border:none;border-radius:9px;background:var(--d-emas);color:#fff;font-weight:800;font-size:.82rem;cursor:pointer}
+  .dash-btn-bayar{flex:1;min-height:40px;border:none;border-radius:9px;background:var(--d-hijau);color:#fff;font-weight:800;font-size:.82rem;cursor:pointer}
   .dash-resit-vendor{margin:12px 0;padding-bottom:8px;border-bottom:1px solid rgba(43,26,20,.1)}
   .dash-resit-vendor:last-of-type{border-bottom:none}
   .dash-resit-vendor-name{font-weight:800;font-size:.78rem;color:var(--d-merah);text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
@@ -548,7 +550,10 @@ function dashRenderResit(list){
         </div>
         ${vendorSections}
         <div class="dash-jum grand"><span>Jumlah Keseluruhan</span><span>RM${grandTotal.toFixed(2)}</span></div>
-        <div class="dash-actions"><button class="dash-btn-cetak" data-meja="${meja}">🖨️ Cetak Resit</button></div>
+        <div class="dash-actions">
+          <button class="dash-btn-cetak" data-meja="${meja}">🖨️ Cetak Resit</button>
+          <button class="dash-btn-bayar" data-meja="${meja}">✔ Dah Bayar</button>
+        </div>
       </div>`;
   }).join('');
 }
@@ -633,9 +638,9 @@ function dashRender(){
         actions = `<button class="dash-btn-selesai" data-id="${o.id}" data-s="selesai">Tandakan Selesai</button><button class="dash-btn-batal" data-id="${o.id}" data-s="batal">Batal</button>`;
       } else if(o.status === 'selesai'){
         actions = `<button class="dash-btn-baru" data-id="${o.id}" data-s="baru">Buka Semula</button>`;
-      } else { // batal
+      } else if(o.status === 'batal'){
         actions = `<button class="dash-btn-baru" data-id="${o.id}" data-s="baru">Buka Semula</button>`;
-      }
+      } // dibayar = final, takde aksi lagi
     }
     return `
       <div class="dash-card ${o.status}">
@@ -656,6 +661,21 @@ function dashRender(){
 document.getElementById('dashBoard').addEventListener('click', async e => {
   const cetakBtn = e.target.closest('button.dash-btn-cetak');
   if(cetakBtn){ dashPrintResit(cetakBtn.dataset.meja); return; }
+
+  const bayarBtn = e.target.closest('button.dash-btn-bayar');
+  if(bayarBtn){
+    const meja = bayarBtn.dataset.meja;
+    const group = dashResitByMeja[meja];
+    if(!group) return;
+    bayarBtn.disabled = true;
+    const client = getSb();
+    const ids = group.map(o=>o.id);
+    const { error } = await client.from('orders').update({status:'dibayar'}).in('id', ids);
+    if(error){ console.error(error); toast('Gagal kemaskini bayaran.', true); bayarBtn.disabled = false; return; }
+    toast(`✅ Meja ${meja} dah dibayar`);
+    await dashLoadInitial();
+    return;
+  }
 
   const btn = e.target.closest('button[data-id]');
   if(!btn) return;
