@@ -1,0 +1,23 @@
+# Elak projek Supabase free tier (serinian-orders) kena pause sebab tak aktif.
+# Panggil REST menu_items sekali setiap 3 hari. Anon key memang awam (sama
+# seperti dalam pos.html), jadi tak perlu secret.
+name: Supabase keepalive
+
+on:
+  schedule:
+    - cron: "17 3 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping menu_items
+        env:
+          SUPABASE_URL: https://afndxjdgxwhgcczuoeah.supabase.co
+          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbmR4amRneHdoZ2NjenVvZWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzMDIxOTQsImV4cCI6MjA5OTg3ODE5NH0.zWj_4z4kDNvR0NnmP-RDGDIseynFEr_QBgBRT0JWWOE
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$SUPABASE_URL/rest/v1/menu_items?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "HTTP $code"
+          [ "$code" = "200" ]
